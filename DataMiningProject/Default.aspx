@@ -8,9 +8,10 @@
 </head>
 <body>
     <form id="form1" runat="server">
-    <div>
-        <b>Ranjan Radhamohan and Alejandro Asenjo's Awesome Data Mining Project</b>
-    </div>
+        <asp:Panel ID="mainpanel" runat="server" BackColor="#F0F0F0" Height="500px" 
+            Width="800px">
+            Test
+        </asp:Panel>
     </form>
 </body>
 </html>
