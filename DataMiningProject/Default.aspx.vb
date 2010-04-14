@@ -1,8 +1,11 @@
 ﻿Partial Public Class _Default
     Inherits System.Web.UI.Page
 
-    ' Declare text box array public for event handlers
-    Public mytextbox() As TextBox
+    ' Declare control arrays public for modification in event handlers
+    Public textboxs() As TextBox
+    Public dropdownlists() As DropDownList
+    Public checkboxes() As CheckBox
+    Public labels() As Label
 
     Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
 
@@ -16,7 +19,7 @@
         numtextboxes = 3
 
         ' Create array of type TextBox
-        ReDim mytextbox(numtextboxes)
+        ReDim textboxs(numtextboxes)
 
         ' Run through text boxes
         For i = 1 To numtextboxes
@@ -25,14 +28,14 @@
             layouttable.Rows(0).Cells.Add(newcell)
 
             ' Instantiate text box
-            mytextbox(i) = New TextBox
+            textboxs(i) = New TextBox
 
             ' Set text box ID and caption
-            mytextbox(i).ID = "test" & i
-            mytextbox(i).Text = mytextbox(i).ID
+            textboxs(i).ID = "test" & i
+            textboxs(i).Text = textboxs(i).ID
 
             ' Add text box to form control list and in table cell
-            newcell.Controls.Add(mytextbox(i))
+            newcell.Controls.Add(textboxs(i))
 
         Next
 
@@ -40,7 +43,7 @@
 
     Protected Sub next_button_Click(ByVal sender As Object, ByVal e As EventArgs) Handles next_button.Click
 
-        mytextbox(1).Text = "Changed!"
+        textboxs(1).Text = "Changed!"
 
     End Sub
 End Class
