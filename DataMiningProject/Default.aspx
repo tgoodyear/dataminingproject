@@ -18,7 +18,7 @@
         {
             font-size: xx-large;
             font-weight: bold;
-            font-family: "Arial Narrow";
+            font-family: "Courier New", Courier, monospace;
         }
     </style>
 </head>
