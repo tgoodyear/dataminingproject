@@ -3,3 +3,8 @@ C:\Users\Ranjan\Documents\DataMiningWeb\DataMiningApp\bin\DataMiningApp.pdb
 C:\Users\Ranjan\Documents\DataMiningWeb\DataMiningApp\obj\Debug\ResolveAssemblyReference.cache
 C:\Users\Ranjan\Documents\DataMiningWeb\DataMiningApp\obj\Debug\DataMiningApp.dll
 C:\Users\Ranjan\Documents\DataMiningWeb\DataMiningApp\obj\Debug\DataMiningApp.pdb
+C:\DataMiningWeb\DataMiningApp\bin\DataMiningApp.dll
+C:\DataMiningWeb\DataMiningApp\bin\DataMiningApp.pdb
+C:\DataMiningWeb\DataMiningApp\obj\Debug\ResolveAssemblyReference.cache
+C:\DataMiningWeb\DataMiningApp\obj\Debug\DataMiningApp.dll
+C:\DataMiningWeb\DataMiningApp\obj\Debug\DataMiningApp.pdb

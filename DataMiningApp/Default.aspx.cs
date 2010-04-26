@@ -6,7 +6,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Web.UI.HtmlControls;
 using System.Data;
-using System.Data.Odbc;
+using System.Data.SqlClient;
 
 namespace DataMiningApp
 {
@@ -19,17 +19,18 @@ namespace DataMiningApp
 
             /* Database connection experimentation */
 
-            OdbcConnection connection;
-            OdbcCommand command;
-            OdbcDataReader reader;
+            SqlConnection connection;
+            SqlCommand command;
+            SqlDataReader reader;
 
             /* Define database connection */
-            connection = new OdbcConnection("Driver={Microsoft Access Driver (*.mdb)};DBQ=" + Server.MapPath("/App_Data/database.mdb") + ";UID=;PWD=;");
-            
+            //connection = new SqlConnection("Driver={Microsoft Access Driver (*.mdb)};DBQ=" + Server.MapPath("/App_Data/database.mdb") + ";UID=;PWD=;");
+            connection = new SqlConnection("Data Source=RANJAN-PC\\SQLEXPRESS;Initial Catalog=DMP;UId=webapp;Password=password;");
+
             /* Create SQL command */
-            string query = "CREATE TABLE datatable(datacolumn1 numeric, datacolumn2 numeric)";   // Direct query version
+            string query = "SELECT * FROM WEBAPP_LAYOUT";   // Direct query version
             
-            command = new OdbcCommand(query,connection);
+            command = new SqlCommand(query,connection);
             
             connection.Open();
             reader = command.ExecuteReader();
@@ -37,7 +38,7 @@ namespace DataMiningApp
             /* Loop through database records */
             while (reader.Read())
             {
-                Response.Write(reader.GetString(0));
+                Response.Write(reader.GetInt16(0));
             }
 
             connection.Close();

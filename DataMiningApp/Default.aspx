@@ -7,10 +7,6 @@
 <head id="Head1" runat="server">
     <title>Datamaster</title>
     <style type="text/css">
-        .style1
-        {
-            width: 100%;
-        }
         .style2
         {
             text-align: center;
@@ -21,15 +17,19 @@
             font-weight: bold;
             font-family: "Courier New", Courier, monospace;
         }
+        .style4
+        {
+            height: 13px;
+        }
     </style>
 </head>
 <body>
     <div class="style2">
         <span class="style3">DataMaster</span>
-        <br />
+        <br /><br />
     </div>
 
-    <asp:Panel ID="mainpanel" runat="server" BackColor="#F0F0F0" Height="600px" 
+    <asp:Panel ID="mainpanel" runat="server" BackColor="#F0F0F0" Height="500px" 
         Width="800px" BorderWidth="2px" BorderColor="Silver" BorderStyle="Solid" Style="margin: 0 auto;">
         <form id="main_form" runat="server">
             
@@ -38,7 +38,7 @@
         </table>
         <table width=100%>    
             <tr>
-                <td align=right>
+                <td align=right class="style4">
                 <asp:Button ID="back_button" runat="server" Text="Back" />
                 <asp:Button ID="next_button" runat="server" Text="Next" 
                         onclick="next_button_Click" />
