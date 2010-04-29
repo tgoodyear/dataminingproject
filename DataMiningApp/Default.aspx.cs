@@ -72,10 +72,13 @@ namespace DataMiningApp
                 layouttable.Rows.Add(new HtmlTableRow());
                 for (int col_traverse = 0; col_traverse < max_layout_cols; col_traverse++)
                 {
-                    HtmlTableCell newcell = new HtmlTableCell();
-                    newcell.RowSpan = spanarray[col_traverse, row_traverse, 0];
-                    newcell.ColSpan = spanarray[col_traverse,row_traverse,1];
-                    layouttable.Rows[row_traverse].Cells.Add(newcell);
+                    if (spanarray[col_traverse, row_traverse, 0] > 0 && spanarray[col_traverse, row_traverse, 1] > 0)
+                    {
+                        HtmlTableCell newcell = new HtmlTableCell();
+                        newcell.RowSpan = spanarray[col_traverse, row_traverse, 0];
+                        newcell.ColSpan = spanarray[col_traverse, row_traverse, 1];
+                        layouttable.Rows[row_traverse].Cells.Add(newcell);
+                    }
                 }
             }
 
