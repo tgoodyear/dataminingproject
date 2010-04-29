@@ -16,38 +16,71 @@ namespace DataMiningApp
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            // Program constants
 
-            /* Database connection experimentation */
+            // Design limit for layout table to 2 columns, 6 rows
+            const int max_layout_cols = 2;
+            const int max_layout_rows = 6;
 
+            // Define database connection objects
             SqlConnection connection;
             SqlCommand command;
             SqlDataReader reader;
 
-            /* Define database connection */
+            // Specify connection string to database
+
+            // Microsoft Access
             //connection = new SqlConnection("Driver={Microsoft Access Driver (*.mdb)};DBQ=" + Server.MapPath("/App_Data/database.mdb") + ";UID=;PWD=;");
+
+            // Microsoft SQL Server
             connection = new SqlConnection("Data Source=RANJAN-PC\\SQLEXPRESS;Initial Catalog=DMP;UId=webapp;Password=password;");
 
-            /* Create SQL command */
-            string query = "SELECT * FROM WEBAPP_LAYOUT";   // Direct query version
-            
-            command = new SqlCommand(query,connection);
-            
+            // Create SQL query
+            string query = "SELECT LAYOUT_X, LAYOUT_Y, ROWSPAN, COLSPAN, CONTROL_TYPE, FILL_DATANAME, OUTPUT_DATANAME FROM WEBAPP_LAYOUT";
+            command = new SqlCommand(query, connection);
+
+            // Open connection and execute query using SQL Reader
             connection.Open();
             reader = command.ExecuteReader();
 
-            /* Loop through database records */
+            // Control array - last index is for control type (0), fill data name (1), and output data name (2)
+            string[, ,] controlarray = new string[max_layout_cols, max_layout_rows, 3];
+            int[, ,] spanarray = new int[max_layout_cols, max_layout_rows, 2];
+            int layout_x, layout_y;
+
+            // Read through layout table for this step and algorithm
             while (reader.Read())
             {
-                Response.Write(reader.GetInt16(0));
+                // Populate control array
+                layout_x = (int)reader[0] - 1;                              // Table x index
+                layout_y = (int)reader[1] - 1;                              // Table y index
+               
+                controlarray[layout_x, layout_y, 0] = (string)reader[4];    // Control type
+                controlarray[layout_x, layout_y, 1] = (string)reader[5];    // Fill data name
+                controlarray[layout_x, layout_y, 2] = (string)reader[6];    // Output data name
+
+                spanarray[layout_x, layout_y, 0] = (int)reader[2];          // Rowspan
+                spanarray[layout_x, layout_y, 1] = (int)reader[3];          // Colspan
             }
 
             connection.Close();
 
-            /* Layout setup experimentation */
+            // Build interface
 
-            
-            layouttable.Rows.Add(new HtmlTableRow());
-            
+            for (int row_traverse = 0; row_traverse < max_layout_rows; row_traverse++)
+            {
+                layouttable.Rows.Add(new HtmlTableRow());
+                for (int col_traverse = 0; col_traverse < max_layout_cols; col_traverse++)
+                {
+                    HtmlTableCell newcell = new HtmlTableCell();
+                    newcell.RowSpan = spanarray[col_traverse, row_traverse, 0];
+                    newcell.ColSpan = spanarray[col_traverse,row_traverse,1];
+                    layouttable.Rows[row_traverse].Cells.Add(newcell);
+                }
+            }
+
+
+            /*
             int numtextboxes = 3;
 
             textboxes = new TextBox[numtextboxes];
@@ -55,7 +88,7 @@ namespace DataMiningApp
             for (int i=0; i < numtextboxes; i++)
             {
                 HtmlTableCell newcell = new HtmlTableCell();
-                layouttable.Rows[0].Cells.Add(newcell);
+                
             
                 textboxes[i] = new TextBox();
                 textboxes[i].ID = "test" + i;
@@ -63,6 +96,7 @@ namespace DataMiningApp
 
                 newcell.Controls.Add(textboxes[i]);
             }
+             * */
         }
         /*
         ' Wizard construction table:

@@ -34,7 +34,7 @@
         <form id="main_form" runat="server">
             
         <!-- Seed for layout table -->   
-        <table height=100% width=100% runat=server border="1" id="layouttable">
+        <table height=500px width=100% runat=server border="1" id="layouttable">
         </table>
         <table width=100%>    
             <tr>
