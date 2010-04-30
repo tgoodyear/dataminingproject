@@ -12,15 +12,16 @@ namespace DataMiningApp
 {
     public partial class _Default : System.Web.UI.Page
     {
+        // Control templates
         public TextBox[] textboxes;
+        public Label labels;
+
+        // Control counters
+        int labelcounter = 0;
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Program constants
-
-            // Design limit for layout table to 2 columns, 6 rows
-            const int max_layout_cols = 2;
-            const int max_layout_rows = 6;
+            // Program variables
 
             // Define database connection objects
             SqlConnection connection;
@@ -35,9 +36,21 @@ namespace DataMiningApp
             // Microsoft SQL Server
             connection = new SqlConnection("Data Source=RANJAN-PC\\SQLEXPRESS;Initial Catalog=DMP;UId=webapp;Password=password;");
 
-            // Create SQL query
-            string query = "SELECT LAYOUT_X, LAYOUT_Y, ROWSPAN, COLSPAN, CONTROL_TYPE, FILL_DATANAME, OUTPUT_DATANAME FROM WEBAPP_LAYOUT";
-            command = new SqlCommand(query, connection);
+            // Create SQL query to find out table size
+            string tablesize_query = "SELECT MAX(LAYOUT_X), MAX(LAYOUT_Y) FROM WEBAPP_LAYOUT";
+            
+            // Establish connection
+            reader = openconnection(tablesize_query, connection);
+
+            // Read table size
+            reader.Read();
+                int max_layout_cols = (int)reader[0];
+                int max_layout_rows = (int)reader[1];
+            closeconnection(reader, connection);
+
+            // Create SQL query to pull table layout information for this job and step
+            string layout_query = "SELECT LAYOUT_X, LAYOUT_Y, ROWSPAN, COLSPAN, CONTROL_TYPE, FILL_DATANAME, OUTPUT_DATANAME FROM WEBAPP_LAYOUT";
+            command = new SqlCommand(layout_query, connection);
 
             // Open connection and execute query using SQL Reader
             connection.Open();
@@ -67,74 +80,97 @@ namespace DataMiningApp
 
             // Build interface
 
+            // Run through rows
             for (int row_traverse = 0; row_traverse < max_layout_rows; row_traverse++)
             {
+                // Add row
                 layouttable.Rows.Add(new HtmlTableRow());
+                
+                // Run through columns
                 for (int col_traverse = 0; col_traverse < max_layout_cols; col_traverse++)
                 {
+                    // Check if this is a valid cell
                     if (spanarray[col_traverse, row_traverse, 0] > 0 && spanarray[col_traverse, row_traverse, 1] > 0)
                     {
+                        // Create new cell object
                         HtmlTableCell newcell = new HtmlTableCell();
+
+                        // Set column and row span properties (merge cells)
                         newcell.RowSpan = spanarray[col_traverse, row_traverse, 0];
                         newcell.ColSpan = spanarray[col_traverse, row_traverse, 1];
+                        
+                        // Add cell to table
                         layouttable.Rows[row_traverse].Cells.Add(newcell);
+                    
+                        // Add control, if applicable
+
+                        // Label control
+                        if (controlarray[col_traverse, row_traverse, 0] == "LABEL")
+                        {
+                            // Create new control
+                            labels = new Label();
+                            labels.ID = "control_" + col_traverse + "_" + row_traverse;
+                            
+                            // Set control properties
+                            labels.Font.Name = "Arial"; labels.Font.Size = 11;
+                            
+                            // Fill data
+                            
+                            // Get fill query from controlarray
+                            string control_query = controlarray[col_traverse, row_traverse, 1];
+                            
+                            // Check if fill query is specified
+                            if (control_query != "NONE" && control_query != "")
+                            {
+                                // Initialize reader and get data
+                                reader = openconnection(control_query, connection);
+                                reader.Read();
+
+                                // Load label text into string and set control value
+                                string datavalue = (string)reader[0];
+                                labels.Text = datavalue;
+
+                                // Close reader and connection
+                                closeconnection(reader, connection);
+                            }
+
+                            // Add control
+                            newcell.Controls.Add(labels);
+
+                        }
                     }
                 }
             }
-
-
-            /*
-            int numtextboxes = 3;
-
-            textboxes = new TextBox[numtextboxes];
-
-            for (int i=0; i < numtextboxes; i++)
-            {
-                HtmlTableCell newcell = new HtmlTableCell();
-                
-            
-                textboxes[i] = new TextBox();
-                textboxes[i].ID = "test" + i;
-                textboxes[i].Text = textboxes[i].ID;
-
-                newcell.Controls.Add(textboxes[i]);
-            }
-             * */
         }
-        /*
-        ' Wizard construction table:
-        ' --------------------------
-        ' Algorithm ID, step, row, column, controltype, datafillprocedure, outputparameter
+        
+        // Reusable function to open data connection and execute reader given query string and SqlConnection object
+        SqlDataReader openconnection(string query, SqlConnection connection)
+        {
+            SqlDataReader reader;
+            SqlCommand command = new SqlCommand(query, connection);
 
-        ' Algorithm ID defines the algorithm that owns the row (PCA, MDS, etc.)
-        ' Step is the current step in the wizard for this algorithm
-        ' Row and column determine where in the layout table the control is placed
-        ' Controltype specifies what type of control - textbox, checkbox, label, etc. is placed (need an upload item as well)
-        ' Datafillprocedure is the SQL stored procedure that fills the control (ex. SELECT for drop down list contents)
-        ' Outputparameter is the name of the variable that will be associated with the chosen data item
+            connection.Open();
+            reader = command.ExecuteReader();
 
-        ' Parameter Result Table:
-        ' -----------------------
-        ' Algorithm ID, run ID, parametername, parametervalue
+            return reader;
+        }
 
-        ' I forsee two types of data tables - the generic parameter table, and the custom data set tables
-        ' This is the generic parameter table that can be used to fill control with predefined options and text
+        // Reusable function to close data connection and reader
+        void closeconnection(SqlDataReader reader, SqlConnection connection)
+        {
+            reader.Close();
+            connection.Close();
+        }
 
-        ' Algorithm execution table:
-        ' --------------------------
-        ' Algorithm ID, step, stepprocedure
-
-        ' Stepprocedure is the SQL stored procedure that will handle the current step of the algorithm
-
-        ' Data storage table:
-        ' -------------------
-        ' Tough one. Probably try to let webpage dynamically create tables based on user upload
-        ' Columns are entirely custom. Algorithm procedure will have to know how to handle it.
-        */
+        // Handler for next button click
         protected void next_button_Click(object sender, EventArgs e)
         {
-            textboxes[0].Text = "Changed!";
-            textboxes[1].Text = textboxes[2].Text;
+            foreach (Control c in Form.Controls)
+            {
+                Response.Write(c.GetType());
+            }
+            
+            //mylabel.Text = "super";
         }
     }
 }
