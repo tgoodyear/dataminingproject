@@ -17,11 +17,12 @@ namespace DataMiningApp
         int max_layout_cols;
         int max_layout_rows;
 
+        // Core variables
+        int jobid = 1;
+        int stepid = 1;
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Program variables
-            int jobid = 1;          // Job ID
-
             // Define database connection objects
             SqlConnection connection;
             SqlCommand command;
@@ -79,11 +80,18 @@ namespace DataMiningApp
 
             // Build interface
 
+            // Evenly distribute width and height of cells to conform to panel
+            // Panel is designed to show scroll bars in case cell contents force size larger than specified here
+            string html_cellwidth = Convert.ToString((Convert.ToInt16(mainpanel.Width.ToString().Substring(0, mainpanel.Width.ToString().Length - 2)) - 15) / max_layout_cols) + "px";
+            string html_cellheight = Convert.ToString((Convert.ToInt16(mainpanel.Height.ToString().Substring(0, mainpanel.Height.ToString().Length - 2)) - 15) / max_layout_rows) + "px";
+            
             // Run through rows
             for (int row_traverse = 0; row_traverse < max_layout_rows; row_traverse++)
             {
                 // Add row
-                layouttable.Rows.Add(new HtmlTableRow());
+                HtmlTableRow newrow = new HtmlTableRow();
+                newrow.Height = html_cellheight;
+                layouttable.Rows.Add(newrow);
                 
                 // Run through columns
                 for (int col_traverse = 0; col_traverse < max_layout_cols; col_traverse++)
@@ -98,16 +106,14 @@ namespace DataMiningApp
                         newcell.RowSpan = spanarray[col_traverse, row_traverse, 0];
                         newcell.ColSpan = spanarray[col_traverse, row_traverse, 1];
 
-                        // Evenly distribute width and height of cells to conform to panel
-                        // Panel is designed to show scroll bars in case cell contents force size larger
-                        newcell.Width = Convert.ToString((Convert.ToInt16(mainpanel.Width.ToString().Substring(0, mainpanel.Width.ToString().Length - 2)) - 20) / max_layout_cols) + "px";
-                        newcell.Height = Convert.ToString((Convert.ToInt16(mainpanel.Height.ToString().Substring(0, mainpanel.Height.ToString().Length - 2)) - 15) / max_layout_rows) + "px";
-
+                        // Set cell width and height based on prior calculation
+                        newcell.Width = html_cellwidth;
+                        
                         // Add cell to table
                         layouttable.Rows[row_traverse].Cells.Add(newcell);
                     
                         // Add control, if applicable
-                        object newcontrol = addcontrol(controlarray, newcell, col_traverse, row_traverse);
+                        Control newcontrol = addcontrol(controlarray, newcell, col_traverse, row_traverse);
                         
                         // Fill data into control
                         fillcontrol(newcontrol, controlarray, col_traverse, row_traverse, jobid, reader, connection);
@@ -119,10 +125,10 @@ namespace DataMiningApp
 
         // CONTROL ADDITION -------------------------------------------------------------------------------------------------------------
 
-        object addcontrol(string[, ,] controlarray, HtmlTableCell cell, int col_traverse, int row_traverse)
+        Control addcontrol(string[, ,] controlarray, HtmlTableCell cell, int col_traverse, int row_traverse)
         {
             // Generic return object
-            object returncontrol = new object();
+            Control returncontrol = new Control();
 
             // Specific object generation methods
             switch(controlarray[col_traverse, row_traverse, 0])
@@ -148,8 +154,6 @@ namespace DataMiningApp
                         TextBox newtextbox = new TextBox();
 
                         // Set control properties
-                        //newtextbox.Width = Convert.ToInt16(cell.Width);
-                        Response.Write(cell.Width);
                         newtextbox.Font.Name = "Arial"; newtextbox.Font.Size = 11;
                         newtextbox.ID = "control_" + col_traverse + "_" + row_traverse;
 
@@ -166,7 +170,7 @@ namespace DataMiningApp
 
         // CONTROL DATA FILL ------------------------------------------------------------------------------------------------------------
 
-        void fillcontrol(object fillcontrol, string[,,] controlarray, int col_traverse, int row_traverse, int jobid, SqlDataReader reader, SqlConnection connection)
+        void fillcontrol(Control fillcontrol, string[,,] controlarray, int col_traverse, int row_traverse, int jobid, SqlDataReader reader, SqlConnection connection)
         {
             // Fill data
 
@@ -228,12 +232,25 @@ namespace DataMiningApp
             connection.Close();
         }
 
+        void writedata(Control mycontrol)
+        { 
+        }
+
         // Handler for next button click
         protected void next_button_Click(object sender, EventArgs e)
         {
-            foreach (Control c in Form.Controls)
+            Control testcontrol;
+
+            for (int row_traverse = 0; row_traverse < max_layout_rows; row_traverse++)
             {
-               
+                for (int col_traverse = 0; col_traverse < max_layout_cols; col_traverse++)
+                {
+                    testcontrol = Form.FindControl("control_" + col_traverse + "_" + row_traverse);
+                    if (testcontrol != null)
+                    {
+                        //Response.Write(testcontrol.GetType().ToString());
+                    }
+                }
             }
         }
     }

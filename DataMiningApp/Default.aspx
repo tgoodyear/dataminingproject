@@ -24,27 +24,28 @@
 </head>
 <body>
     <div class="style2">
+    <br />
         <span class="style3"><strong>DataMaster<br />
         </strong></span>
         &nbsp;<br />
     </div>
     <form id="main_form" runat="server">
-    <table align=center>
+    <table align="center">
     <tr>
     <td>
-    <asp:Panel ID="mainpanel" runat="server" BackColor="#F0F0F0" Height="515px" 
+    <asp:Panel ID="mainpanel" runat="server" BackColor="#F0F0F0" Height="535px" 
         Width="920px" BorderWidth="2px" BorderColor="Silver" BorderStyle="Solid" 
         Style="margin: 0 auto;" ScrollBars="Auto">
             
         <!-- Seed for layout table -->   
-        <table runat=server border="1" id="layouttable" cellpadding="10" style="font-family=arial;font-size=12px" align="center">
+        <table runat="server" border="1" id="layouttable" cellpadding="10" style="font-family:arial;font-size:12px" align="center">
         </table>                    
 
     </asp:Panel>
     </td>
     </tr>
     <tr>
-    <td align=right class="style4">
+    <td align="right" class="style4">
         <asp:Button ID="next_button" runat="server" Text="Next >>" 
             onclick="next_button_Click" Font-Bold="True" Font-Size="Large" 
             Height="35px" Width="100px" />
