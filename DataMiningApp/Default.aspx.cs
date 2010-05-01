@@ -12,16 +12,15 @@ namespace DataMiningApp
 {
     public partial class _Default : System.Web.UI.Page
     {
-        // Control templates
-        public TextBox[] textboxes;
-        public Label labels;
-
-        // Control counters
-        int labelcounter = 0;
+        // Public variables necessary for data write on "Next" click
+        string[, ,] controlarray;
+        int max_layout_cols;
+        int max_layout_rows;
 
         protected void Page_Load(object sender, EventArgs e)
         {
             // Program variables
+            int jobid = 1;          // Job ID
 
             // Define database connection objects
             SqlConnection connection;
@@ -44,8 +43,8 @@ namespace DataMiningApp
 
             // Read table size
             reader.Read();
-                int max_layout_cols = (int)reader[0];
-                int max_layout_rows = (int)reader[1];
+                max_layout_cols = (int)reader[0];
+                max_layout_rows = (int)reader[1];
             closeconnection(reader, connection);
 
             // Create SQL query to pull table layout information for this job and step
@@ -57,7 +56,7 @@ namespace DataMiningApp
             reader = command.ExecuteReader();
 
             // Control array - last index is for control type (0), fill data name (1), and output data name (2)
-            string[, ,] controlarray = new string[max_layout_cols, max_layout_rows, 3];
+            controlarray = new string[max_layout_cols, max_layout_rows, 3];
             int[, ,] spanarray = new int[max_layout_cols, max_layout_rows, 2];
             int layout_x, layout_y;
 
@@ -98,50 +97,117 @@ namespace DataMiningApp
                         // Set column and row span properties (merge cells)
                         newcell.RowSpan = spanarray[col_traverse, row_traverse, 0];
                         newcell.ColSpan = spanarray[col_traverse, row_traverse, 1];
-                        
+
+                        // Evenly distribute width and height of cells to conform to panel
+                        // Panel is designed to show scroll bars in case cell contents force size larger
+                        newcell.Width = Convert.ToString((Convert.ToInt16(mainpanel.Width.ToString().Substring(0, mainpanel.Width.ToString().Length - 2)) - 20) / max_layout_cols) + "px";
+                        newcell.Height = Convert.ToString((Convert.ToInt16(mainpanel.Height.ToString().Substring(0, mainpanel.Height.ToString().Length - 2)) - 15) / max_layout_rows) + "px";
+
                         // Add cell to table
                         layouttable.Rows[row_traverse].Cells.Add(newcell);
                     
                         // Add control, if applicable
-
-                        // Label control
-                        if (controlarray[col_traverse, row_traverse, 0] == "LABEL")
-                        {
-                            // Create new control
-                            labels = new Label();
-                            labels.ID = "control_" + col_traverse + "_" + row_traverse;
-                            
-                            // Set control properties
-                            labels.Font.Name = "Arial"; labels.Font.Size = 11;
-                            
-                            // Fill data
-                            
-                            // Get fill query from controlarray
-                            string control_query = controlarray[col_traverse, row_traverse, 1];
-                            
-                            // Check if fill query is specified
-                            if (control_query != "NONE" && control_query != "")
-                            {
-                                // Initialize reader and get data
-                                reader = openconnection(control_query, connection);
-                                reader.Read();
-
-                                // Load label text into string and set control value
-                                string datavalue = (string)reader[0];
-                                labels.Text = datavalue;
-
-                                // Close reader and connection
-                                closeconnection(reader, connection);
-                            }
-
-                            // Add control
-                            newcell.Controls.Add(labels);
-
-                        }
+                        object newcontrol = addcontrol(controlarray, newcell, col_traverse, row_traverse);
+                        
+                        // Fill data into control
+                        fillcontrol(newcontrol, controlarray, col_traverse, row_traverse, jobid, reader, connection);
+                        
                     }
                 }
             }
         }
+
+        // CONTROL ADDITION -------------------------------------------------------------------------------------------------------------
+
+        object addcontrol(string[, ,] controlarray, HtmlTableCell cell, int col_traverse, int row_traverse)
+        {
+            // Generic return object
+            object returncontrol = new object();
+
+            // Specific object generation methods
+            switch(controlarray[col_traverse, row_traverse, 0])
+            {
+                case "LABEL":   // Label control
+                    {
+                        // Create new control
+                        Label newlabel = new Label();
+
+                        // Set control properties
+                        newlabel.Font.Name = "Arial"; newlabel.Font.Size = 11;
+                        newlabel.ID = "control_" + col_traverse + "_" + row_traverse;
+
+                        // Add control
+                        cell.Controls.Add(newlabel);
+                        returncontrol = newlabel;
+
+                        break;
+                    }
+                case "TEXTBOX":
+                    {
+                        // Create new control
+                        TextBox newtextbox = new TextBox();
+
+                        // Set control properties
+                        //newtextbox.Width = Convert.ToInt16(cell.Width);
+                        Response.Write(cell.Width);
+                        newtextbox.Font.Name = "Arial"; newtextbox.Font.Size = 11;
+                        newtextbox.ID = "control_" + col_traverse + "_" + row_traverse;
+
+                        // Add control
+                        cell.Controls.Add(newtextbox);
+                        returncontrol = newtextbox;
+
+                        break;
+                    }
+            }
+            return returncontrol;
+
+        }
+
+        // CONTROL DATA FILL ------------------------------------------------------------------------------------------------------------
+
+        void fillcontrol(object fillcontrol, string[,,] controlarray, int col_traverse, int row_traverse, int jobid, SqlDataReader reader, SqlConnection connection)
+        {
+            // Fill data
+
+            // Get fill query from controlarray
+            string control_query = controlarray[col_traverse, row_traverse, 1];
+
+            // Check if fill query is specified
+            if (control_query != "NONE" && control_query != "")
+            {
+                // Add Job ID
+                control_query = control_query + " " + jobid;
+
+                // Initialize reader and get data
+                reader = openconnection(control_query, connection);
+                reader.Read();
+
+                // Fill details are specific to control type
+                switch(fillcontrol.GetType().ToString())
+                {
+                    // Label control type
+                    case "System.Web.UI.WebControls.Label":
+                        {
+                            // Load label text into string and set control value
+                            string datavalue = (string)reader[0];
+                            
+                            // Create label control that points to fillcontrol object
+                            Label labelcontrol = (Label)fillcontrol;
+
+                            // Add label text
+                            labelcontrol.Text = datavalue;
+                            
+                            break;
+                        }
+                }
+
+                // Close reader and connection
+                closeconnection(reader, connection);
+            }
+        }
+
+        // DATABASE SUPPORT -------------------------------------------------------------------------------------------------------------
         
         // Reusable function to open data connection and execute reader given query string and SqlConnection object
         SqlDataReader openconnection(string query, SqlConnection connection)
@@ -167,10 +233,8 @@ namespace DataMiningApp
         {
             foreach (Control c in Form.Controls)
             {
-                Response.Write(c.GetType());
+               
             }
-            
-            //mylabel.Text = "super";
         }
     }
 }

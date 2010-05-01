@@ -24,30 +24,34 @@
 </head>
 <body>
     <div class="style2">
-        <br />
         <span class="style3"><strong>DataMaster<br />
         </strong></span>
         &nbsp;<br />
     </div>
-    <asp:Panel ID="mainpanel" runat="server" BackColor="#F0F0F0" Height="500px" 
-        Width="800px" BorderWidth="2px" BorderColor="Silver" BorderStyle="Solid" Style="margin: 0 auto;">
-        <form id="main_form" runat="server">
+    <form id="main_form" runat="server">
+    <table align=center>
+    <tr>
+    <td>
+    <asp:Panel ID="mainpanel" runat="server" BackColor="#F0F0F0" Height="515px" 
+        Width="920px" BorderWidth="2px" BorderColor="Silver" BorderStyle="Solid" 
+        Style="margin: 0 auto;" ScrollBars="Auto">
             
         <!-- Seed for layout table -->   
-        <table height=500px width=100% runat=server border="1" id="layouttable" cellpadding="10" style="font-family=arial;font-size=12px">
-        </table>
-        <table width=100%>    
-            <tr>
-                <td align=right class="style4">
-                <asp:Button ID="next_button" runat="server" Text="Next >>" 
-                        onclick="next_button_Click" Font-Bold="True" Font-Size="Large" 
-                        Height="35px" Width="100px" />
-                </td>
-            </tr>
+        <table runat=server border="1" id="layouttable" cellpadding="10" style="font-family=arial;font-size=12px" align="center">
         </table>                    
-        </form>
-    </asp:Panel>
 
+    </asp:Panel>
+    </td>
+    </tr>
+    <tr>
+    <td align=right class="style4">
+        <asp:Button ID="next_button" runat="server" Text="Next >>" 
+            onclick="next_button_Click" Font-Bold="True" Font-Size="Large" 
+            Height="35px" Width="100px" />
+        </td>
+    </tr>
+    </table>
+    </form>
 </body>
 </html>
 
