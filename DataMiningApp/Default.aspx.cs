@@ -21,13 +21,13 @@ namespace DataMiningApp
         int jobid = 1;
         int stepid = 1;
 
+        // Define database connection objects
+        SqlConnection connection;
+        SqlCommand command;
+        SqlDataReader reader;
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Define database connection objects
-            SqlConnection connection;
-            SqlCommand command;
-            SqlDataReader reader;
-
             // Specify connection string to database
 
             // Microsoft Access
@@ -232,26 +232,74 @@ namespace DataMiningApp
             connection.Close();
         }
 
-        void writedata(Control mycontrol)
-        { 
+        // CONTROL DATA WRITE ----------------------------------------------------------------------------------------------------------
+
+        void datawrite(Control outputcontrol, int jobid, int stepid, int col_traverse, int row_traverse)
+        {
+            // Initialize string to hold data read
+            // NEXT STEP - make this an array, loop through values and write them all with separate inserts, different rows
+            // Also, refactor so some code is reused
+            string datatowrite;
+
+            switch(outputcontrol.GetType().ToString())
+            {
+                case "System.Web.UI.WebControls.TextBox":
+                {
+                    // Create temporary text box object to retrieve value from generic control
+                    TextBox datapull = new TextBox();
+                    datapull = (TextBox)outputcontrol;
+
+                    // Get value from text box
+                    datatowrite = datapull.Text;
+
+                    // Get fill query from controlarray
+                    string control_query = controlarray[col_traverse, row_traverse, 2];
+
+                    // Add critical keys for data write to ALGORITHM_DATASTORE
+                    // JobID, StepID, Data_Name, Row_ID, Column_ID, Value
+                    control_query = control_query + " " + jobid + ", " + stepid + ",'" + datapull.ID + "',1,1,'" + datatowrite + "'";
+
+                    // Check if fill query is specified
+                    if (control_query != "NONE" && control_query != "")
+                    {
+                         // Initialize reader and get data
+                        reader = openconnection(control_query, connection);
+                        reader.Read();
+                    }
+
+                    closeconnection(reader, connection);
+
+                    break;
+                }
+
+            }
         }
 
-        // Handler for next button click
+        // NEXT BUTTON HANDLER ---------------------------------------------------------------------------------------------------------
+
         protected void next_button_Click(object sender, EventArgs e)
         {
+            // Create template control to operate on
             Control testcontrol;
 
+            // Loop through cells in layout table looking for controls
             for (int row_traverse = 0; row_traverse < max_layout_rows; row_traverse++)
             {
                 for (int col_traverse = 0; col_traverse < max_layout_cols; col_traverse++)
                 {
+                    // Check if cell has a control
                     testcontrol = Form.FindControl("control_" + col_traverse + "_" + row_traverse);
+                    
+                    // If so, call data write function
                     if (testcontrol != null)
                     {
+                        datawrite(testcontrol, jobid, stepid, col_traverse, row_traverse);
                         //Response.Write(testcontrol.GetType().ToString());
                     }
                 }
             }
+
+            // Move to next step
         }
     }
 }
