@@ -232,47 +232,68 @@ namespace DataMiningApp
             connection.Close();
         }
 
-        // CONTROL DATA WRITE ----------------------------------------------------------------------------------------------------------
+        // CONTROL DATA RETRIEVE --------------------------------------------------------------------------------------------------------
 
-        void datawrite(Control outputcontrol, int jobid, int stepid, int col_traverse, int row_traverse)
+        string[,,] dataretrieve(Control outputcontrol)
         {
             // Initialize string to hold data read
             // NEXT STEP - make this an array, loop through values and write them all with separate inserts, different rows
             // Also, refactor so some code is reused
-            string datatowrite;
+            
+            // Data to write - row, col, value
+            string[, ,] datatowrite;
 
+            // Dimensions of data - will come from specific control write implementations
+            int max_rows;
+            int max_cols;
+            
             switch(outputcontrol.GetType().ToString())
             {
                 case "System.Web.UI.WebControls.TextBox":
                 {
+                    max_rows = 1; max_cols = 1;
+                    datatowrite = new string[max_rows, max_cols, 1];
+
                     // Create temporary text box object to retrieve value from generic control
                     TextBox datapull = new TextBox();
                     datapull = (TextBox)outputcontrol;
 
                     // Get value from text box
-                    datatowrite = datapull.Text;
+                    datatowrite[0,0,0] = datapull.Text;
 
-                    // Get fill query from controlarray
-                    string control_query = controlarray[col_traverse, row_traverse, 2];
-
-                    // Add critical keys for data write to ALGORITHM_DATASTORE
-                    // JobID, StepID, Data_Name, Row_ID, Column_ID, Value
-                    control_query = control_query + " " + jobid + ", " + stepid + ",'" + datapull.ID + "',1,1,'" + datatowrite + "'";
-
-                    // Check if fill query is specified
-                    if (control_query != "NONE" && control_query != "")
-                    {
-                         // Initialize reader and get data
-                        reader = openconnection(control_query, connection);
-                        reader.Read();
-                    }
-
-                    closeconnection(reader, connection);
-
+                    break;
+                }
+                default:
+                {
+                    datatowrite = new string[1, 1, 1];
+                    datatowrite[0, 0, 0] = null;
                     break;
                 }
 
             }
+
+            return datatowrite;
+        }
+
+        // INSERT DATA IN DATABASE -----------------------------------------------------------------------------------------------------
+
+        void datawrite(string[, ,] datatowrite, string control_query, string control_id)
+        {
+            int row_counter = 0; int col_counter = 0;
+
+            // Check if fill query is specified
+            if (control_query != "NONE" && control_query != "")
+            {
+                // Add critical keys for data write to ALGORITHM_DATASTORE
+                // JobID, StepID, Data_Name, Row_ID, Column_ID, Value
+                control_query = control_query + " " + jobid + ", " + stepid + ",'" + control_id + "'," + row_counter + "," + col_counter + ",'" + datatowrite[row_counter,col_counter,0] + "'";
+
+                // Initialize reader and get data
+                reader = openconnection(control_query, connection);
+                reader.Read();
+            }
+
+            closeconnection(reader, connection);
         }
 
         // NEXT BUTTON HANDLER ---------------------------------------------------------------------------------------------------------
@@ -281,6 +302,9 @@ namespace DataMiningApp
         {
             // Create template control to operate on
             Control testcontrol;
+
+            // Data storage set
+            string[, ,] datatowrite;
 
             // Loop through cells in layout table looking for controls
             for (int row_traverse = 0; row_traverse < max_layout_rows; row_traverse++)
@@ -293,8 +317,11 @@ namespace DataMiningApp
                     // If so, call data write function
                     if (testcontrol != null)
                     {
-                        datawrite(testcontrol, jobid, stepid, col_traverse, row_traverse);
-                        //Response.Write(testcontrol.GetType().ToString());
+                        datatowrite = dataretrieve(testcontrol);
+                        if (datatowrite != null)
+                        {
+                            datawrite(datatowrite,controlarray[col_traverse, row_traverse, 2],testcontrol.ID);
+                        }
                     }
                 }
             }
