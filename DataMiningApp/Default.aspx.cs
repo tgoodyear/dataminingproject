@@ -82,9 +82,9 @@ namespace DataMiningApp
 
             // Evenly distribute width and height of cells to conform to panel
             // Panel is designed to show scroll bars in case cell contents force size larger than specified here
-            string html_cellwidth = Convert.ToString((Convert.ToInt16(mainpanel.Width.ToString().Substring(0, mainpanel.Width.ToString().Length - 2)) - 15) / max_layout_cols) + "px";
-            string html_cellheight = Convert.ToString((Convert.ToInt16(mainpanel.Height.ToString().Substring(0, mainpanel.Height.ToString().Length - 2)) - 15) / max_layout_rows) + "px";
-            
+            string html_cellwidth = Convert.ToString((Convert.ToInt16(mainpanel.Width.ToString().Substring(0, mainpanel.Width.ToString().Length - 2)) - ((max_layout_cols + 1)*layouttable.Border) - layouttable.CellPadding) / max_layout_cols) + "px";
+            string html_cellheight = Convert.ToString((Convert.ToInt16(mainpanel.Height.ToString().Substring(0, mainpanel.Height.ToString().Length - 2)) - ((max_layout_rows + 1)*layouttable.Border) - layouttable.CellPadding) / max_layout_rows) + "px";
+
             // Run through rows
             for (int row_traverse = 0; row_traverse < max_layout_rows; row_traverse++)
             {
@@ -108,12 +108,13 @@ namespace DataMiningApp
 
                         // Set cell width and height based on prior calculation
                         newcell.Width = html_cellwidth;
-                        
+                        newcell.VAlign = "top";
+
                         // Add cell to table
                         layouttable.Rows[row_traverse].Cells.Add(newcell);
                     
                         // Add control, if applicable
-                        Control newcontrol = addcontrol(controlarray, newcell, col_traverse, row_traverse);
+                        Control newcontrol = addcontrol(controlarray, newcell, newrow, col_traverse, row_traverse);
                         
                         // Fill data into control
                         fillcontrol(newcontrol, controlarray, col_traverse, row_traverse, jobid, reader, connection);
@@ -125,7 +126,7 @@ namespace DataMiningApp
 
         // CONTROL ADDITION -------------------------------------------------------------------------------------------------------------
 
-        Control addcontrol(string[, ,] controlarray, HtmlTableCell cell, int col_traverse, int row_traverse)
+        Control addcontrol(string[, ,] controlarray, HtmlTableCell cell, HtmlTableRow row, int col_traverse, int row_traverse)
         {
             // Generic return object
             Control returncontrol = new Control();
@@ -156,13 +157,31 @@ namespace DataMiningApp
                         // Set control properties
                         newtextbox.Font.Name = "Arial"; newtextbox.Font.Size = 11;
                         newtextbox.ID = "control_" + col_traverse + "_" + row_traverse;
-
+                        newtextbox.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0,cell.Width.Length-2))*cell.ColSpan - 2*(layouttable.Border + layouttable.CellPadding));
+                        
                         // Add control
                         cell.Controls.Add(newtextbox);
                         returncontrol = newtextbox;
 
                         break;
                     }
+                case "IMAGE":
+                    {
+                        // Create new control
+                        Image newimage = new Image();
+
+                        // Set control properties
+                        newimage.ID = "control_" + col_traverse + "_" + row_traverse;
+                        newimage.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+                        newimage.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+
+                        // Add control
+                        cell.Controls.Add(newimage);
+                        returncontrol = newimage;
+
+                        break;
+                    }
+
             }
             return returncontrol;
 
@@ -204,6 +223,19 @@ namespace DataMiningApp
                             
                             break;
                         }
+                    case "System.Web.UI.WebControls.Image":
+                        {
+                            // Load image into string and set control value
+                            string imagepath = (string)reader[0];
+
+                            // Create image control that points to fillcontrol object
+                            Image imagecontrol = (Image)fillcontrol;
+
+                            // Add image path
+                            imagecontrol.ImageUrl = imagepath;
+
+                            break;
+                        }
                 }
 
                 // Close reader and connection
@@ -214,6 +246,7 @@ namespace DataMiningApp
         // DATABASE SUPPORT -------------------------------------------------------------------------------------------------------------
         
         // Reusable function to open data connection and execute reader given query string and SqlConnection object
+        
         SqlDataReader openconnection(string query, SqlConnection connection)
         {
             SqlDataReader reader;

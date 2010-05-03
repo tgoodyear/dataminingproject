@@ -35,12 +35,11 @@
     <td>
     <asp:Panel ID="mainpanel" runat="server" BackColor="#F0F0F0" Height="535px" 
         Width="920px" BorderWidth="2px" BorderColor="Silver" BorderStyle="Solid" 
-        Style="margin: 0 auto;" ScrollBars="Auto">
+        Style="margin:auto;vertical-align:middle;" ScrollBars="Auto">
             
         <!-- Seed for layout table -->   
-        <table runat="server" border="1" id="layouttable" cellpadding="10" style="font-family:arial;font-size:12px" align="center">
+        <table runat="server" id="layouttable" border="1" cellpadding="10" style="font-family:arial;font-size:12px;">
         </table>                    
-
     </asp:Panel>
     </td>
     </tr>
