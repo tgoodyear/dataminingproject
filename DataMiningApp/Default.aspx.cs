@@ -16,7 +16,7 @@ namespace DataMiningApp
         string[, ,] controlarray;
         int max_layout_cols;
         int max_layout_rows;
-
+        
         // Core variables
         int jobid = 1;
         int stepid = 1;
@@ -183,17 +183,29 @@ namespace DataMiningApp
                     }
                 case "TABLE":
                     {
+                        // Enclose table in panel
+                        Panel tablepanel = new Panel();
+                        tablepanel.ScrollBars = ScrollBars.Auto;
+                        tablepanel.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+                        tablepanel.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding)); tablepanel.BackColor = System.Drawing.Color.Red;
+                        tablepanel.BackColor = mainpanel.BackColor;
+
                         // Create new control
                         GridView newtable = new GridView();
 
                         // Set control properties
                         newtable.ID = "control_" + col_traverse + "_" + row_traverse;
-                        newtable.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
-                        newtable.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+                        newtable.Width = Unit.Pixel((int)(tablepanel.Width.Value - 17));
+                        newtable.Height = Unit.Pixel((int)(tablepanel.Height.Value - 15));
+                        newtable.Font.Name = "Arial"; newtable.Font.Size = 11;
+                        newtable.HeaderStyle.BackColor = System.Drawing.Color.Silver;
+                        newtable.RowStyle.BackColor = System.Drawing.Color.White;
+                        newtable.RowStyle.HorizontalAlign = HorizontalAlign.Center;
 
                         // Add control
-                        cell.Controls.Add(newtable);
-                        returncontrol = newtable;
+                        tablepanel.Controls.Add(newtable);
+                        cell.Controls.Add(tablepanel);
+                        returncontrol = tablepanel;
 
                         break;
                     }
@@ -217,7 +229,7 @@ namespace DataMiningApp
             {
                 // Add Job ID
                 control_query = control_query + " " + jobid;
-                Response.Write(control_query);
+                
                 // Initialize reader and get data
                 reader = openconnection(control_query, connection);
 
@@ -253,14 +265,15 @@ namespace DataMiningApp
 
                             break;
                         }
-                    case "System.Web.UI.WebControls.GridView":
+                    case "System.Web.UI.WebControls.Panel":
                         {
                             // Convert reader data to dataset
                             DataTable retrieveddataset;
                             retrieveddataset = db_dataretrieve(reader);
 
                             // Create GridView control that points to fillcontrol object
-                            GridView gridviewcontrol = (GridView)fillcontrol;
+                            Panel tablecontainer = (Panel)fillcontrol;
+                            GridView gridviewcontrol = (GridView)tablecontainer.Controls[0];
 
                             gridviewcontrol.DataSource = retrieveddataset;
                             gridviewcontrol.DataBind();
@@ -300,31 +313,44 @@ namespace DataMiningApp
 
         DataTable db_dataretrieve(SqlDataReader reader)
         {
+            // Create temporary data table to store data for return
             DataTable returndata = new DataTable();
 
+            // Initialize row object, and add first row to data table
             int rowid = 0;
             DataRow currentrow = returndata.NewRow();
             returndata.Rows.Add(currentrow);
+            
+            // Initialize column object
             DataColumn currentcol;
             
+            // Loop through row, col, value records
             while (reader.Read())
             {  
+                // If new row in source data, add row to data table
                 if (rowid != (int)reader[0])
                 {
-                    Response.Write("here<br>");
+                    // Add row
                     currentrow = returndata.NewRow();
                     returndata.Rows.Add(currentrow);
+                    
+                    // Set row counter to new row
                     rowid = (int)reader[0];
                 }
+
+                // If still the first row, any new record will be an additional column
                 if (rowid == 0)
                 {
+                    // Create new column
                     currentcol = new DataColumn();
                     returndata.Columns.Add(currentcol);
-                    Response.Write("New column created");
                 }
+
+                // In any case, add value to current rol, col
                 currentrow[(int)reader[1]] = reader[2];
             }
-            Response.Write(returndata.Rows[0].ItemArray);
+
+            // After loop through records, return temporary datatable
             return returndata;
         }
 
