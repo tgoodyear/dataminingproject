@@ -181,6 +181,22 @@ namespace DataMiningApp
 
                         break;
                     }
+                case "TABLE":
+                    {
+                        // Create new control
+                        GridView newtable = new GridView();
+
+                        // Set control properties
+                        newtable.ID = "control_" + col_traverse + "_" + row_traverse;
+                        newtable.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+                        newtable.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+
+                        // Add control
+                        cell.Controls.Add(newtable);
+                        returncontrol = newtable;
+
+                        break;
+                    }
 
             }
             return returncontrol;
@@ -201,10 +217,9 @@ namespace DataMiningApp
             {
                 // Add Job ID
                 control_query = control_query + " " + jobid;
-
+                Response.Write(control_query);
                 // Initialize reader and get data
                 reader = openconnection(control_query, connection);
-                reader.Read();
 
                 // Fill details are specific to control type
                 switch(fillcontrol.GetType().ToString())
@@ -213,6 +228,7 @@ namespace DataMiningApp
                     case "System.Web.UI.WebControls.Label":
                         {
                             // Load label text into string and set control value
+                            reader.Read();
                             string datavalue = (string)reader[0];
                             
                             // Create label control that points to fillcontrol object
@@ -226,6 +242,7 @@ namespace DataMiningApp
                     case "System.Web.UI.WebControls.Image":
                         {
                             // Load image into string and set control value
+                            reader.Read();
                             string imagepath = (string)reader[0];
 
                             // Create image control that points to fillcontrol object
@@ -235,6 +252,20 @@ namespace DataMiningApp
                             imagecontrol.ImageUrl = imagepath;
 
                             break;
+                        }
+                    case "System.Web.UI.WebControls.GridView":
+                        {
+                            // Convert reader data to dataset
+                            DataTable retrieveddataset;
+                            retrieveddataset = db_dataretrieve(reader);
+
+                            // Create GridView control that points to fillcontrol object
+                            GridView gridviewcontrol = (GridView)fillcontrol;
+
+                            gridviewcontrol.DataSource = retrieveddataset;
+                            gridviewcontrol.DataBind();
+
+                            break;      
                         }
                 }
 
@@ -265,9 +296,41 @@ namespace DataMiningApp
             connection.Close();
         }
 
-        // CONTROL DATA RETRIEVE --------------------------------------------------------------------------------------------------------
+        // DB DATA RETRIEVE AND CONVERT ------------------------------------------------------------------------------------------------
 
-        string[,,] dataretrieve(Control outputcontrol)
+        DataTable db_dataretrieve(SqlDataReader reader)
+        {
+            DataTable returndata = new DataTable();
+
+            int rowid = 0;
+            DataRow currentrow = returndata.NewRow();
+            returndata.Rows.Add(currentrow);
+            DataColumn currentcol;
+            
+            while (reader.Read())
+            {  
+                if (rowid != (int)reader[0])
+                {
+                    Response.Write("here<br>");
+                    currentrow = returndata.NewRow();
+                    returndata.Rows.Add(currentrow);
+                    rowid = (int)reader[0];
+                }
+                if (rowid == 0)
+                {
+                    currentcol = new DataColumn();
+                    returndata.Columns.Add(currentcol);
+                    Response.Write("New column created");
+                }
+                currentrow[(int)reader[1]] = reader[2];
+            }
+            Response.Write(returndata.Rows[0].ItemArray);
+            return returndata;
+        }
+
+        // CONTROL DATA RETRIEVE -------------------------------------------------------------------------------------------------------
+
+        string[,,] control_dataretrieve(Control outputcontrol)
         {
             // Initialize string to hold data read
             // NEXT STEP - make this an array, loop through values and write them all with separate inserts, different rows
@@ -350,7 +413,7 @@ namespace DataMiningApp
                     // If so, call data write function
                     if (testcontrol != null)
                     {
-                        datatowrite = dataretrieve(testcontrol);
+                        datatowrite = control_dataretrieve(testcontrol);
                         if (datatowrite != null)
                         {
                             datawrite(datatowrite,controlarray[col_traverse, row_traverse, 2],testcontrol.ID);
