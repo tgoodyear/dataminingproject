@@ -38,10 +38,10 @@
     <td>
     <asp:Panel ID="mainpanel" runat="server" BackColor="#F0F0F0" Height="535px" 
         Width="920px" BorderWidth="2px" BorderColor="Silver" BorderStyle="Solid" 
-        Style="margin:auto;vertical-align:middle;" ScrollBars="Auto">
+        Style="vertical-align:middle;" ScrollBars="Auto">
             
         <!-- Seed for layout table -->   
-        <table runat="server" id="layouttable" border="1" bordercolor="black" borderstyle="solid" cellpadding="10" style="font-family:arial;font-size:12px;">
+        <table runat="server" id="layouttable" border="1" bordercolor="#F0F0F0" borderstyle="solid" cellpadding="10" style="font-family:arial;font-size:12px;border-collapse:collapse;">
         </table>                    
     </asp:Panel>
     </td>

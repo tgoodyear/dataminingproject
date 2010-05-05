@@ -20,6 +20,7 @@ namespace DataMiningApp
         
         // Core variables
         int jobid = 1;
+        int algorithmid = 1;
         int stepid = 1;
 
         // Define database connection objects
@@ -45,12 +46,12 @@ namespace DataMiningApp
 
             // Read table size
             reader.Read();
-                max_layout_cols = (int)reader[0];
-                max_layout_rows = (int)reader[1];
+                max_layout_cols = (int)reader[0] + 1;
+                max_layout_rows = (int)reader[1] + 1;
             closeconnection(reader, connection);
 
             // Create SQL query to pull table layout information for this job and step
-            string layout_query = "SELECT LAYOUT_X, LAYOUT_Y, ROWSPAN, COLSPAN, CONTROL_TYPE, FILL_DATANAME, OUTPUT_DATANAME FROM WEBAPP_LAYOUT";
+            string layout_query = "SELECT LAYOUT_X, LAYOUT_Y, ROWSPAN, COLSPAN, CONTROL_TYPE, FILL_DATANAME, OUTPUT_DATANAME, CONST FROM WEBAPP_LAYOUT";
             command = new SqlCommand(layout_query, connection);
 
             // Open connection and execute query using SQL Reader
@@ -59,6 +60,8 @@ namespace DataMiningApp
 
             // Control array - last index is for control type (0), fill data name (1), and output data name (2)
             controlarray = new string[max_layout_cols, max_layout_rows, 3];
+            
+            // Span array control row and column spans
             int[, ,] spanarray = new int[max_layout_cols, max_layout_rows, 2];
             int layout_x, layout_y;
 
@@ -66,8 +69,8 @@ namespace DataMiningApp
             while (reader.Read())
             {
                 // Populate control array
-                layout_x = (int)reader[0] - 1;                              // Table x index
-                layout_y = (int)reader[1] - 1;                              // Table y index
+                layout_x = (int)reader[0];                                  // Table x index
+                layout_y = (int)reader[1];                                  // Table y index
                
                 controlarray[layout_x, layout_y, 0] = (string)reader[4];    // Control type
                 controlarray[layout_x, layout_y, 1] = (string)reader[5];    // Fill data name
@@ -83,8 +86,8 @@ namespace DataMiningApp
 
             // Evenly distribute width and height of cells to conform to panel
             // Panel is designed to show scroll bars in case cell contents force size larger than specified here
-            string html_cellwidth = Convert.ToString((Convert.ToInt16(mainpanel.Width.ToString().Substring(0, mainpanel.Width.ToString().Length - 2)) - ((max_layout_cols + 1)*layouttable.Border) - layouttable.CellPadding) / max_layout_cols) + "px";
-            string html_cellheight = Convert.ToString((Convert.ToInt16(mainpanel.Height.ToString().Substring(0, mainpanel.Height.ToString().Length - 2)) - ((max_layout_rows + 1)*layouttable.Border) - layouttable.CellPadding) / max_layout_rows) + "px";
+            string html_cellwidth = Convert.ToString((Convert.ToInt16(mainpanel.Width.ToString().Substring(0, mainpanel.Width.ToString().Length - 2)) - ((max_layout_cols)*layouttable.Border) - layouttable.CellPadding) / max_layout_cols) + "px";
+            string html_cellheight = Convert.ToString((Convert.ToInt16(mainpanel.Height.ToString().Substring(0, mainpanel.Height.ToString().Length - 2)) - ((max_layout_rows)*layouttable.Border) - layouttable.CellPadding) / max_layout_rows) + "px";
 
             // Run through rows
             for (int row_traverse = 0; row_traverse < max_layout_rows; row_traverse++)
@@ -118,7 +121,7 @@ namespace DataMiningApp
                         Control newcontrol = addcontrol(controlarray, newcell, newrow, col_traverse, row_traverse);
                         
                         // Fill data into control
-                        fillcontrol(newcontrol, controlarray, col_traverse, row_traverse, jobid, reader, connection);
+                        fillcontrol(newcontrol, controlarray, col_traverse, row_traverse, jobid, algorithmid, stepid, reader, connection);
                         
                     }
                 }
@@ -154,16 +157,24 @@ namespace DataMiningApp
                     {
                         // Create new control
                         TextBox newtextbox = new TextBox();
+                        Label newlabel = new Label();
 
-                        // Set control properties
+                        // Set textbox control properties
                         newtextbox.Font.Name = "Arial"; newtextbox.Font.Size = 11;
                         newtextbox.ID = "control_" + col_traverse + "_" + row_traverse;
                         newtextbox.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0,cell.Width.Length-2))*cell.ColSpan - 2*(layouttable.Border + layouttable.CellPadding));
-                        
-                        // Add control
-                        cell.Controls.Add(newtextbox);
-                        returncontrol = newtextbox;
 
+                        // Set label control properties
+                        newlabel.Font.Name = "Arial"; newlabel.Font.Size = 11;
+
+                        // Add control
+                        cell.Controls.Add(newlabel);
+                        cell.Controls.Add(new LiteralControl("<br><br>"));
+                        cell.Controls.Add(newtextbox);
+                        
+                        // Return label for text fill
+                        //returncontrol = newtextbox;
+                        returncontrol = newlabel;
                         break;
                     }
                 case "IMAGE":
@@ -186,9 +197,9 @@ namespace DataMiningApp
                     {
                         // Enclose table in panel
                         Panel tablepanel = new Panel();
-                        tablepanel.ScrollBars = ScrollBars.Auto;
-                        tablepanel.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
-                        tablepanel.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+                        tablepanel.ScrollBars = ScrollBars.Both;
+                        tablepanel.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - (layouttable.Border + layouttable.CellPadding));
+                        tablepanel.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - (layouttable.Border + layouttable.CellPadding));
                         
                         // Create new control
                         GridView newtable = new GridView();
@@ -196,7 +207,7 @@ namespace DataMiningApp
                         // Set control properties
                         newtable.ID = "control_" + col_traverse + "_" + row_traverse;
                         newtable.Width = Unit.Pixel((int)(tablepanel.Width.Value - 17));
-                        newtable.Height = Unit.Pixel((int)(tablepanel.Height.Value - 15));
+                        newtable.Height = Unit.Pixel((int)(tablepanel.Height.Value - 17));
                         newtable.Font.Name = "Arial"; newtable.Font.Size = 11;
                         newtable.HeaderStyle.BackColor = System.Drawing.Color.Silver;
                         newtable.RowStyle.BackColor = System.Drawing.Color.White;
@@ -214,9 +225,11 @@ namespace DataMiningApp
                         // Create new control
                         Chart chartcontrol = new Chart();
 
+                        // Set chart width and height
                         chartcontrol.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
                         chartcontrol.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding));
 
+                        // Needed so server knows where to store temporary image
                         chartcontrol.ImageStorageMode = ImageStorageMode.UseImageLocation;
 
                         ChartArea mychartarea = new ChartArea();
@@ -227,9 +240,6 @@ namespace DataMiningApp
                         chartcontrol.Series.Add(myseries);
 
                         chartcontrol.Series["Series"].ChartType = SeriesChartType.Point;
-                        
-                        chartcontrol.Series["Series"].XValueMember = "Column1";
-                        chartcontrol.Series["Series"].YValueMembers = "Column2";
 
                         // Add control
                         cell.Controls.Add(chartcontrol);
@@ -244,7 +254,7 @@ namespace DataMiningApp
 
         // CONTROL DATA FILL ------------------------------------------------------------------------------------------------------------
 
-        void fillcontrol(Control fillcontrol, string[,,] controlarray, int col_traverse, int row_traverse, int jobid, SqlDataReader reader, SqlConnection connection)
+        void fillcontrol(Control fillcontrol, string[,,] controlarray, int col_traverse, int row_traverse, int jobid, int algorithmid, int stepid, SqlDataReader reader, SqlConnection connection)
         {
             // Fill data
 
@@ -255,8 +265,15 @@ namespace DataMiningApp
             if (control_query != "NONE" && control_query != "")
             {
                 // Add Job ID
-                control_query = control_query + " " + jobid;
-                
+                if (control_query != "CONST")
+                {
+                    control_query = control_query + " " + jobid;
+                }
+                else
+                {
+                    control_query = "WEBAPP_SELECTCONST " + algorithmid + "," + stepid + "," + col_traverse + "," + row_traverse;
+                }
+
                 // Initialize reader and get data
                 reader = openconnection(control_query, connection);
 
@@ -315,6 +332,13 @@ namespace DataMiningApp
 
                             Chart chartcontrol = (Chart)fillcontrol;
 
+                            // Set data plotted by returned column names
+                            chartcontrol.Series["Series"].XValueMember = retrieveddataset.Columns[0].ColumnName;
+                            chartcontrol.Series["Series"].YValueMembers = retrieveddataset.Columns[1].ColumnName;
+
+                            chartcontrol.ChartAreas[0].AxisX.Title = chartcontrol.Series["Series"].XValueMember;
+                            chartcontrol.ChartAreas[0].AxisY.Title = chartcontrol.Series["Series"].YValueMembers;
+
                             chartcontrol.DataSource = retrieveddataset;
                             chartcontrol.DataBind();
                             
@@ -359,7 +383,7 @@ namespace DataMiningApp
             // Initialize row object, and add first row to data table
             int rowid = 0;
             DataRow currentrow = returndata.NewRow();
-            returndata.Rows.Add(currentrow);
+            //returndata.Rows.Add(currentrow);
             
             // Initialize column object
             DataColumn currentcol;
@@ -379,15 +403,18 @@ namespace DataMiningApp
                 }
 
                 // If still the first row, any new record will be an additional column
-                if (rowid == 0)
+                if ((int)reader[0] == 0)
                 {
                     // Create new column
                     currentcol = new DataColumn();
+                    currentcol.ColumnName = (string)reader[2];
                     returndata.Columns.Add(currentcol);
                 }
-
-                // In any case, add value to current rol, col
-                currentrow[(int)reader[1]] = reader[2];
+                else
+                {
+                    // In any case, add value to current rol, col
+                    currentrow[(int)reader[1]] = reader[2];
+                }
             }
 
             // After loop through records, return temporary datatable
@@ -397,11 +424,7 @@ namespace DataMiningApp
         // CONTROL DATA RETRIEVE -------------------------------------------------------------------------------------------------------
 
         string[,,] control_dataretrieve(Control outputcontrol)
-        {
-            // Initialize string to hold data read
-            // NEXT STEP - make this an array, loop through values and write them all with separate inserts, different rows
-            // Also, refactor so some code is reused
-            
+        {          
             // Data to write - row, col, value
             string[, ,] datatowrite;
 
@@ -441,18 +464,29 @@ namespace DataMiningApp
 
         void datawrite(string[, ,] datatowrite, string control_query, string control_id)
         {
-            int row_counter = 0; int col_counter = 0;
+            int row_counter; int col_counter;
+
+            int total_rows = datatowrite.GetLength(0);
+            int total_cols = datatowrite.GetLength(1);
 
             // Check if fill query is specified
             if (control_query != "NONE" && control_query != "")
             {
                 // Add critical keys for data write to ALGORITHM_DATASTORE
                 // JobID, StepID, Data_Name, Row_ID, Column_ID, Value
-                control_query = control_query + " " + jobid + ", " + stepid + ",'" + control_id + "'," + row_counter + "," + col_counter + ",'" + datatowrite[row_counter,col_counter,0] + "'";
 
-                // Initialize reader and get data
-                reader = openconnection(control_query, connection);
-                reader.Read();
+                for (row_counter = 0; row_counter < total_rows; row_counter++)
+                {
+                    for (col_counter = 0; col_counter < total_cols; col_counter++)
+                    {
+                        // Construct query
+                        control_query = control_query + " " + jobid + ", " + stepid + ",'" + control_id + "'," + row_counter + "," + col_counter + ",'" + datatowrite[row_counter, col_counter, 0] + "'";
+                        
+                        // Initialize reader and get data
+                        reader = openconnection(control_query, connection);
+                        reader.Read();
+                    }
+                }    
             }
 
             closeconnection(reader, connection);
