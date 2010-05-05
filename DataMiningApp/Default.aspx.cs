@@ -7,6 +7,7 @@ using System.Web.UI.WebControls;
 using System.Web.UI.HtmlControls;
 using System.Data;
 using System.Data.SqlClient;
+using System.Web.UI.DataVisualization.Charting;
 
 namespace DataMiningApp
 {
@@ -187,9 +188,8 @@ namespace DataMiningApp
                         Panel tablepanel = new Panel();
                         tablepanel.ScrollBars = ScrollBars.Auto;
                         tablepanel.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
-                        tablepanel.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding)); tablepanel.BackColor = System.Drawing.Color.Red;
-                        tablepanel.BackColor = mainpanel.BackColor;
-
+                        tablepanel.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+                        
                         // Create new control
                         GridView newtable = new GridView();
 
@@ -209,7 +209,34 @@ namespace DataMiningApp
 
                         break;
                     }
+                case "SCATTERPLOT":
+                    {
+                        // Create new control
+                        Chart chartcontrol = new Chart();
 
+                        chartcontrol.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+                        chartcontrol.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+
+                        chartcontrol.ImageStorageMode = ImageStorageMode.UseImageLocation;
+
+                        ChartArea mychartarea = new ChartArea();
+                        chartcontrol.ChartAreas.Add(mychartarea);
+
+                        Series myseries = new Series();
+                        myseries.Name = "Series";
+                        chartcontrol.Series.Add(myseries);
+
+                        chartcontrol.Series["Series"].ChartType = SeriesChartType.Point;
+                        
+                        chartcontrol.Series["Series"].XValueMember = "Column1";
+                        chartcontrol.Series["Series"].YValueMembers = "Column2";
+
+                        // Add control
+                        cell.Controls.Add(chartcontrol);
+                        returncontrol = chartcontrol;
+                        
+                        break;
+                    }
             }
             return returncontrol;
 
@@ -279,6 +306,19 @@ namespace DataMiningApp
                             gridviewcontrol.DataBind();
 
                             break;      
+                        }
+                    case "System.Web.UI.DataVisualization.Charting.Chart":
+                        {
+                            // Convert reader data to dataset
+                            DataTable retrieveddataset;
+                            retrieveddataset = db_dataretrieve(reader);
+
+                            Chart chartcontrol = (Chart)fillcontrol;
+
+                            chartcontrol.DataSource = retrieveddataset;
+                            chartcontrol.DataBind();
+                            
+                            break;
                         }
                 }
 
