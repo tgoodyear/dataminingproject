@@ -256,7 +256,7 @@ namespace DataMiningApp
                         Button uploadbutton = new Button();
                         GridView uploadtable = new GridView();
 
-                        // Create panel
+                        // Create panel to enclose table to it can scroll without having to scroll entire window
                         Panel tablepanel = new Panel();
                         tablepanel.ScrollBars = ScrollBars.Both;
                         tablepanel.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - (layouttable.Border + layouttable.CellPadding));
@@ -266,9 +266,9 @@ namespace DataMiningApp
                         uploadlabel.ID = "control_" + col_traverse + "_" + row_traverse + "_label";
                         savedfile.ID = "control_" + col_traverse + "_" + row_traverse + "_savedfile";
                         savedpath.ID = "control_" + col_traverse + "_" + row_traverse + "_savedpath";
-                        uploadcontrol.ID = "control_" + col_traverse + "_" + row_traverse + "_upload";
+                        uploadcontrol.ID = "control_" + col_traverse + "_" + row_traverse;
                         uploadtable.ID = "control_" + col_traverse + "_" + row_traverse + "_table";
-                        uploadbutton.ID = "control_" + col_traverse + "_" + row_traverse;
+                        uploadbutton.ID = "control_" + col_traverse + "_" + row_traverse + "_button";
 
                         // Set control properties
                         uploadbutton.Text = "Load File";
@@ -292,6 +292,7 @@ namespace DataMiningApp
                         tablepanel.Controls.Add(new LiteralControl("<br><br>"));
                         tablepanel.Controls.Add(uploadtable);
 
+                        // Add controls to scrollable panel
                         cell.Controls.Add(tablepanel);
                         
                         // Return uploadcontrol, even though this control itself does not need to be filled (need control type)
@@ -400,7 +401,7 @@ namespace DataMiningApp
                     case "System.Web.UI.WebControls.FileUpload":
                         {
                             FileUpload uploadcontrol = (FileUpload)fillcontrol;
-                            string id = uploadcontrol.ID.Replace("_upload","");
+                            string id = uploadcontrol.ID;
                             
                             // Fill label
                             reader.Read();
@@ -515,6 +516,33 @@ namespace DataMiningApp
 
                     break;
                 }
+                case "System.Web.UI.WebControls.FileUpload":
+                {
+                    FileUpload uploadcontrol = (FileUpload)outputcontrol;
+                    string id = outputcontrol.ID;
+
+                    GridView datatable = (GridView)Form.FindControl(id + "_table");
+
+                    max_rows = datatable.Rows.Count; 
+                    max_cols = datatable.Rows[0].Cells.Count;
+
+                    datatowrite = new string[max_rows + 1, max_cols, 1];
+
+                    for (int i = 1; i <= max_cols; i++)
+                    {
+                        datatowrite[0, i - 1, 0] = datatable.HeaderRow.Cells[i - 1].Text;
+                    }
+
+                    for(int j = 0; j < max_rows; j++)
+                    {
+                        for (int k = 0; k < max_cols; k++)
+                        {
+                            datatowrite[j+1,k,0] = datatable.Rows[j].Cells[k].Text;
+                        }
+                    }
+
+                    break;
+                }
                 default:
                 {
                     datatowrite = new string[1, 1, 1];
@@ -532,7 +560,7 @@ namespace DataMiningApp
         void datawrite(string[, ,] datatowrite, string control_query, string control_id)
         {
             int row_counter; int col_counter;
-
+            string execute_query;
             int total_rows = datatowrite.GetLength(0);
             int total_cols = datatowrite.GetLength(1);
 
@@ -547,16 +575,15 @@ namespace DataMiningApp
                     for (col_counter = 0; col_counter < total_cols; col_counter++)
                     {
                         // Construct query
-                        control_query = control_query + " " + jobid + ", " + stepid + ",'" + control_id + "'," + row_counter + "," + col_counter + ",'" + datatowrite[row_counter, col_counter, 0] + "'";
+                        execute_query = control_query + " " + jobid + ", " + stepid + ",'" + control_id + "'," + row_counter + "," + col_counter + ",'" + datatowrite[row_counter, col_counter, 0] + "'";
                         
                         // Initialize reader and get data
-                        reader = openconnection(control_query, connection);
+                        reader = openconnection(execute_query, connection);
                         reader.Read();
+                        closeconnection(reader, connection);
                     }
                 }    
             }
-
-            closeconnection(reader, connection);
         }
 
         // UPLOAD BUTTON HANDLER -------------------------------------------------------------------------------------------------------
@@ -565,10 +592,10 @@ namespace DataMiningApp
         {
             // Get button ID
             Button getbuttonID = (Button)sender;
-            string id = getbuttonID.ID;
+            string id = getbuttonID.ID.Replace("_button","");
 
             // Use button ID to find similarly named upload control ID
-            FileUpload uploadcontrol = (FileUpload)Form.FindControl(id + "_upload");
+            FileUpload uploadcontrol = (FileUpload)Form.FindControl(id);
 
             // Only upload if control has file selected
             if (uploadcontrol.HasFile)
@@ -609,7 +636,6 @@ namespace DataMiningApp
             }
         }
         
-        
         // NEXT BUTTON HANDLER ---------------------------------------------------------------------------------------------------------
 
         protected void next_button_Click(object sender, EventArgs e)
@@ -626,16 +652,16 @@ namespace DataMiningApp
                 for (int col_traverse = 0; col_traverse < max_layout_cols; col_traverse++)
                 {
                     // Check if cell has a control
-                    testcontrol = Form.FindControl("control_" + col_traverse + "_" + row_traverse);
-                    
+                    testcontrol = (Control)Form.FindControl("control_" + col_traverse + "_" + row_traverse);
+
                     // If so, call data write function
                     if (testcontrol != null)
                     {
                         datatowrite = control_dataretrieve(testcontrol);
                         if (datatowrite != null)
                         {
-                            datawrite(datatowrite,controlarray[col_traverse, row_traverse, 2],testcontrol.ID);
-                        }
+                            datawrite(datatowrite, controlarray[col_traverse, row_traverse, 2], testcontrol.ID);
+                        }                 
                     }
                 }
             }
