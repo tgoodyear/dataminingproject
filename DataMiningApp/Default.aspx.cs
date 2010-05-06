@@ -247,6 +247,59 @@ namespace DataMiningApp
                         
                         break;
                     }
+                case "UPLOAD":
+                    {
+                        // Create new controls
+                        Label uploadlabel = new Label();
+                        FileUpload uploadcontrol = new FileUpload();
+                        HiddenField savedfile = new HiddenField(); HiddenField savedpath = new HiddenField();
+                        Button uploadbutton = new Button();
+                        GridView uploadtable = new GridView();
+
+                        // Create panel
+                        Panel tablepanel = new Panel();
+                        tablepanel.ScrollBars = ScrollBars.Both;
+                        tablepanel.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - (layouttable.Border + layouttable.CellPadding));
+                        tablepanel.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - (layouttable.Border + layouttable.CellPadding));
+
+                        // Set IDs for all controls (necessary to get information after postback on upload)
+                        uploadlabel.ID = "control_" + col_traverse + "_" + row_traverse + "_label";
+                        savedfile.ID = "control_" + col_traverse + "_" + row_traverse + "_savedfile";
+                        savedpath.ID = "control_" + col_traverse + "_" + row_traverse + "_savedpath";
+                        uploadcontrol.ID = "control_" + col_traverse + "_" + row_traverse + "_upload";
+                        uploadtable.ID = "control_" + col_traverse + "_" + row_traverse + "_table";
+                        uploadbutton.ID = "control_" + col_traverse + "_" + row_traverse;
+
+                        // Set control properties
+                        uploadbutton.Text = "Load File";
+                        uploadbutton.Font.Name = "Arial"; uploadbutton.Font.Size = 10;
+                        uploadbutton.Width = 100;
+                        uploadbutton.Click += new System.EventHandler(uploadbutton_Click);
+                        uploadlabel.Font.Name = "Arial"; uploadlabel.Font.Size = 11;
+                        uploadcontrol.Width = Unit.Pixel((int)(tablepanel.Width.Value - 17) - (int)uploadbutton.Width.Value);
+                        uploadtable.Width = Unit.Pixel((int)(tablepanel.Width.Value - 17));
+                        uploadtable.Height = Unit.Pixel((int)(tablepanel.Height.Value - 17));
+                        uploadtable.Font.Name = "Arial"; uploadtable.Font.Size = 11;
+                        uploadtable.HeaderStyle.BackColor = System.Drawing.Color.Silver;
+                        uploadtable.RowStyle.BackColor = System.Drawing.Color.White;
+                        uploadtable.RowStyle.HorizontalAlign = HorizontalAlign.Center;
+
+                        // Add controls to form and format
+                        tablepanel.Controls.Add(uploadlabel);
+                        tablepanel.Controls.Add(new LiteralControl("<br><br>"));
+                        tablepanel.Controls.Add(uploadcontrol);
+                        tablepanel.Controls.Add(uploadbutton);
+                        tablepanel.Controls.Add(new LiteralControl("<br><br>"));
+                        tablepanel.Controls.Add(uploadtable);
+
+                        cell.Controls.Add(tablepanel);
+                        
+                        // Return uploadcontrol, even though this control itself does not need to be filled (need control type)
+                        returncontrol = uploadcontrol;
+
+                        break;
+                    }
+
             }
             return returncontrol;
 
@@ -342,6 +395,20 @@ namespace DataMiningApp
                             chartcontrol.DataSource = retrieveddataset;
                             chartcontrol.DataBind();
                             
+                            break;
+                        }
+                    case "System.Web.UI.WebControls.FileUpload":
+                        {
+                            FileUpload uploadcontrol = (FileUpload)fillcontrol;
+                            string id = uploadcontrol.ID.Replace("_upload","");
+                            
+                            // Fill label
+                            reader.Read();
+                            string datavalue = (string)reader[0];
+                            
+                            Label uploadlabel = (Label)Form.FindControl(id + "_label");
+                            uploadlabel.Text = datavalue;
+
                             break;
                         }
                 }
@@ -492,6 +559,57 @@ namespace DataMiningApp
             closeconnection(reader, connection);
         }
 
+        // UPLOAD BUTTON HANDLER -------------------------------------------------------------------------------------------------------
+
+        protected void uploadbutton_Click(object sender, EventArgs e)
+        {
+            // Get button ID
+            Button getbuttonID = (Button)sender;
+            string id = getbuttonID.ID;
+
+            // Use button ID to find similarly named upload control ID
+            FileUpload uploadcontrol = (FileUpload)Form.FindControl(id + "_upload");
+
+            // Only upload if control has file selected
+            if (uploadcontrol.HasFile)
+            {
+                // Add upload path
+                String savePath = @"c:\temp\";
+
+                // Retrieve filename from upload control
+                String fileName = uploadcontrol.FileName;
+
+                // Save data to web server
+                uploadcontrol.SaveAs(savePath + fileName);
+
+                // Fill GridView
+
+                // Establish text driver connection
+                System.Data.Odbc.OdbcConnection csv_connection;
+                System.Data.Odbc.OdbcDataAdapter csv_adapter;
+
+                // Create temporary data table to store CSV data
+                DataTable csv_data = new DataTable();
+
+                // Create connection string and execute connection to CSV
+                string csv_connectionString = @"Driver={Microsoft Text Driver (*.txt; *.csv)};Dbq=" + savePath + ";";
+                csv_connection = new System.Data.Odbc.OdbcConnection(csv_connectionString);
+
+                // Fill adapter with SELECT * query from CSV
+                csv_adapter = new System.Data.Odbc.OdbcDataAdapter("select * from [" + fileName + "]", csv_connection);
+                csv_adapter.Fill(csv_data);
+
+                // Close CSV connection
+                csv_connection.Close();
+
+                // Find GridView and fill
+                GridView filedata = (GridView)Form.FindControl(id + "_table");
+                filedata.DataSource = csv_data;
+                filedata.DataBind();
+            }
+        }
+        
+        
         // NEXT BUTTON HANDLER ---------------------------------------------------------------------------------------------------------
 
         protected void next_button_Click(object sender, EventArgs e)
@@ -524,5 +642,6 @@ namespace DataMiningApp
 
             // Move to next step
         }
+
     }
 }
