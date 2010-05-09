@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MathNet.Numerics.LinearAlgebra;
+using System.Data.OleDb;
 
 namespace PCA1
 {
@@ -12,7 +13,8 @@ namespace PCA1
         static void Main(string[] args)
         {
             Console.Out.WriteLine ("Hello...");
-            
+
+            irisPCA();
             //provider = new MathNet.Numerics.Algorithms.LinearAlgebra.Atlas.AtlasLinearAlgebraProvider();
 
             /*
@@ -112,7 +114,7 @@ namespace PCA1
             //from http://www.vias.org/tmdatanaleng/dd_nipals_algo.html
              for (i = 0; i < PCs; i++)
             {
-                printMatrix(E, "E");
+                //printMatrix(E, "E");
                 //1.    u := x(i) 	Select a column vector xi of the matrix X and copy it to the vector u
                 //The vector must be such that the self-inner product is not zero 
                 
@@ -129,65 +131,65 @@ namespace PCA1
   
                 E_transposed = E.Clone();
                 E_transposed.Transpose();
-                printMatrix(E_transposed, "E transposed");
+                //printMatrix(E_transposed, "E transposed");
                 
                 int step = 1;
                 double error = 1;
                 while (error > threshold)
                 {
-                    Console.Out.WriteLine("PC " + (i+1) + " Step : " + step++);
+                  //  Console.Out.WriteLine("PC " + (i+1) + " Step : " + step++);
 
                     //2. 	v := (X'u)/(u'u) 	Project the matrix X onto u in order to find the corresponding loading vs
-                    Console.Out.WriteLine("u: " + u.ToColumnMatrix().ToString());
+                    //Console.Out.WriteLine("u: " + u.ToColumnMatrix().ToString());
                     ut_u = u.ScalarMultiply(u);
                     if (ut_u == 0)
                         throw new Exception("Principal component results in complex answer");
   
-                    Console.Out.WriteLine("u'u: " + ut_u);
+                    //Console.Out.WriteLine("u'u: " + ut_u);
  
                     Matrix v_prime = E_transposed.Multiply(u.ToColumnMatrix());
-                    printMatrix(v_prime, "v prime");
+                    //printMatrix(v_prime, "v prime");
                     v = v_prime.GetColumnVector(0) / ut_u;
-                    Console.Out.WriteLine("v: " + v.ToString());
+                    //Console.Out.WriteLine("v: " + v.ToString());
 
                     //3.    v := v/|v| 	Normalize the loading vector v to length 1
                     v = v.Normalize();
                     //v = v / v.Norm();
-                    Console.Out.WriteLine("v after normalization: " + v.ToString());
+                    //Console.Out.WriteLine("v after normalization: " + v.ToString());
 
 
                     //4.1 	u_old := u  Store the score vector u into uold 
                     Vector u_old = u.Clone();
-                    Console.Out.WriteLine("u old: " + u_old.ToString());
+                    //Console.Out.WriteLine("u old: " + u_old.ToString());
 
                     //4.2      u := (Xp)/(v'v) 	and project the matrix X onto v in order to find corresponding score vector u
                     Matrix u_prime = E.Multiply(v.ToColumnMatrix());
-                    Console.Out.WriteLine("u_prime: ");
-                    printMatrix(u_prime);
+                    //Console.Out.WriteLine("u_prime: ");
+                    //printMatrix(u_prime);
 
                     Vector u_primeColumn = u_prime.GetColumnVector(0);
-                    Console.Out.WriteLine("u_primeColumn: " + u_primeColumn.ToString());
+                    //Console.Out.WriteLine("u_primeColumn: " + u_primeColumn.ToString());
 
                     double v_v = v.ScalarMultiply(v);
 
-                    Console.Out.WriteLine("v_v: " + v_v);
+                    //Console.Out.WriteLine("v_v: " + v_v);
 
                     u = u_primeColumn/ v_v;
-                    Console.Out.WriteLine("new u: " + u.ToString());
+                    //Console.Out.WriteLine("new u: " + u.ToString());
 
                     //5. 	d := uold-u 	In order to check for the convergence of the process 
                     //calculate the difference vector d as the difference between the previous scores
                     //and the current scores. If the difference |d| is larger than a pre-defined threshold,
                     //then return to step 2.
                     Vector d = u_old.Subtract(u);
-                    Console.Out.WriteLine("d: " + d.ToString());
+                    //Console.Out.WriteLine("d: " + d.ToString());
                     error = d.Norm();
-                    Console.Out.WriteLine("Error: " + error.ToString());
+                    //Console.Out.WriteLine("Error: " + error.ToString());
 
                 }
                 //6. 	E := X - tp' 	Remove the estimated PCA component (the product of the scores and the loadings) from X
                 Matrix tp = u.ToColumnMatrix().Multiply(v.ToRowMatrix());
-                printMatrix(tp, "tp'");
+                //printMatrix(tp, "tp'");
                 E.Subtract(tp);
 
                 PCmatrix.SetColumnVector(v,i);
@@ -213,6 +215,99 @@ namespace PCA1
         {
             return X.SingularValueDecomposition;
         }
+
+        public static void irisPCA()
+        {
+            //setup to read from CSV
+            String CSVfilePath = "C:\\data";
+            String connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + CSVfilePath + ";Extended Properties='text;HDR=Yes;FMT=Delimited'";
+            //Setup connection  
+            OleDbConnection connection = new OleDbConnection(connectionString);
+            //read everything
+            OleDbCommand cmd = new OleDbCommand("SELECT * FROM " + "iris.csv", connection);
+            //table to hold the data
+            System.Data.DataTable dt = new System.Data.DataTable();
+            //adapter to read the data
+            OleDbDataAdapter da = new OleDbDataAdapter(cmd);
+            connection.Open();
+            da.Fill(dt);
+
+            //data should be in the table now
+            // create a matrix to hold the data, ignore species
+            //        Matrix iris = new Matrix (dt.Rows.Count, dt.Columns.Count -1);
+            //select columns
+            dt.Columns.Remove(dt.Columns[4]);
+            double[,] dataArray = new double[dt.Rows.Count,dt.Columns.Count];
+           // double sample = Array.ConvertAll<System.Data.DataRow, double[]>(dt.Select(),;
+            
+            for(int i = 0; i<dt.Rows.Count;i++){
+                Console.Out.Write ("[ ");
+                for(int j = 0; j<dt.Columns.Count;j++){
+                    dataArray[i, j] = (double)dt.Rows[i].ItemArray.ElementAt(j);
+                    Console.Out.Write (dt.Rows[i].ItemArray.ElementAt(j).ToString() + ", ");
+                }
+                Console.Out.WriteLine (" ]");
+            }
+            //dt.Rows.CopyTo(dataArray, 0);
+            //double[] dataArray = Array.ConvertAll(
+            Matrix iris = new Matrix(dataArray);
+            printMatrix(iris, "iris");
+
+            //remove mean
+            for (int i = 0; i < iris.ColumnCount; i++)
+                iris.SetColumnVector(iris.GetColumnVector(i).Subtract(iris.GetColumnVector(i).Average()), i);
+
+            int PCs = 2;
+            Matrix PCmatrix = new Matrix(iris.ColumnCount, PCs, 0);
+            Vector EigenValues = new Vector(PCs);
+            System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
+
+            try
+            {
+                timer.Start();
+                NIPALS(iris, PCs, PCmatrix, EigenValues);
+                timer.Stop();
+            }
+            catch (Exception e)
+            {
+                Console.Out.WriteLine(e.ToString());
+                Console.In.ReadLine();
+                return;
+            }
+            Console.Out.WriteLine("NIPALS Time: " + timer.ElapsedMilliseconds);
+
+            printMatrix(PCmatrix, "Principal Components");
+            printMatrix(EigenValues.ToRowMatrix(), "Weights");
+
+            
+            Console.Out.WriteLine("SVD:");
+            timer.Reset();
+            timer.Start();
+            SingularValueDecomposition svd = iris.SingularValueDecomposition;
+            timer.Stop();
+            Console.Out.WriteLine("SVD Time: " + timer.ElapsedMilliseconds);
+
+            //Console.Out.WriteLine("LSV: ");
+            //printMatrix(svd.LeftSingularVectors);
+            Console.Out.WriteLine("RSV: ");
+            printMatrix(svd.RightSingularVectors);
+            Console.Out.WriteLine("S: ");
+            printMatrix(svd.S);
+            Console.Out.WriteLine("Singular Values: ");
+            printMatrix(svd.SingularValues.ToRowMatrix());
+            Console.In.ReadLine();
+            
+
+
+//            Console.Out.WriteLine(dt.Rows[0].ItemArray.Take(4).ToArray<double>());
+            /*
+            for (int i=0;i<iris.ColumnCount;i++){
+                iris.SetColumnVector(dt.Columns[i].Container.Components.GetEnumerator.
+            } 
+             */
+        }
+
+
 
     }
 }
