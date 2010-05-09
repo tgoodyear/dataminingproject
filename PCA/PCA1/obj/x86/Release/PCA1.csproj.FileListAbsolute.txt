@@ -1,0 +1,11 @@
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\obj\x86\Release\ResolveAssemblyReference.cache
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\bin\Release\PCA1.exe
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\bin\Release\PCA1.pdb
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\bin\Release\MathNet.Iridium.dll
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\bin\Release\MathNet.Iridium.pdb
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\bin\Release\MathNet.Iridium.xml
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\bin\Release\de\MathNet.Iridium.resources.dll
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\bin\Release\es\MathNet.Iridium.resources.dll
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\bin\Release\fr\MathNet.Iridium.resources.dll
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\obj\x86\Release\PCA1.exe
+C:\Documents and Settings\aasenjo\my documents\visual studio 2010\Projects\PCA1\PCA1\obj\x86\Release\PCA1.pdb
