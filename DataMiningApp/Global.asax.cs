@@ -9,6 +9,7 @@ namespace DataMiningApp
 {
     public class Global : System.Web.HttpApplication
     {
+        int stepid;
 
         void Application_Start(object sender, EventArgs e)
         {
@@ -31,7 +32,8 @@ namespace DataMiningApp
         void Session_Start(object sender, EventArgs e)
         {
             // Code that runs when a new session is started
-
+            stepid = 1;
+            Session.Add("stepid", stepid);
         }
 
         void Session_End(object sender, EventArgs e)

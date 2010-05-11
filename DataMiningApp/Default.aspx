@@ -32,7 +32,7 @@
         </strong></span>
     </p>
     </div>
-    <form id="main_form" runat="server">
+    <form id="main_form" runat="server" method=post>
     <table align="center">
     <tr>
     <td>
@@ -50,7 +50,7 @@
     <td align="right" class="style4">
         <asp:Button ID="next_button" runat="server" Text="Next >>" 
             onclick="next_button_Click" Font-Bold="True" Font-Size="Large" 
-            Height="35px" Width="100px" />
+            Height="35px" Width="100px" PostBackUrl="~/Default.aspx"/>
         </td>
     </tr>
     </table>

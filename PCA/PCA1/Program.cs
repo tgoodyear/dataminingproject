@@ -219,7 +219,7 @@ namespace PCA1
         public static void irisPCA()
         {
             //setup to read from CSV
-            String CSVfilePath = "C:\\data";
+            String CSVfilePath = "C:\\dataminingproject";
             String connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + CSVfilePath + ";Extended Properties='text;HDR=Yes;FMT=Delimited'";
             //Setup connection  
             OleDbConnection connection = new OleDbConnection(connectionString);
