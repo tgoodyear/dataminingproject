@@ -19,3 +19,8 @@ C:\Documents and Settings\aasenjo\My Documents\Visual Studio 2010\Projects\PCA1\
 C:\Documents and Settings\aasenjo\My Documents\Visual Studio 2010\Projects\PCA1\bin\Debug\es\MathNet.Iridium.resources.dll
 C:\Documents and Settings\aasenjo\My Documents\Visual Studio 2010\Projects\PCA1\bin\Debug\fr\MathNet.Iridium.resources.dll
 C:\Documents and Settings\aasenjo\My Documents\Visual Studio 2010\Projects\PCA1\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\dataminingproject\PCA\PCA1\obj\x86\Debug\PCA1.exe
+C:\dataminingproject\PCA\PCA1\obj\x86\Debug\PCA1.pdb
+C:\dataminingproject\PCA\PCA1\bin\Debug\PCA1.exe
+C:\dataminingproject\PCA\PCA1\bin\Debug\PCA1.pdb
+C:\dataminingproject\PCA\PCA1\obj\x86\Debug\ResolveAssemblyReference.cache

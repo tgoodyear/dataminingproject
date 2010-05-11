@@ -8,3 +8,8 @@ C:\DataMiningWeb\DataMiningApp\bin\DataMiningApp.pdb
 C:\DataMiningWeb\DataMiningApp\obj\Debug\ResolveAssemblyReference.cache
 C:\DataMiningWeb\DataMiningApp\obj\Debug\DataMiningApp.dll
 C:\DataMiningWeb\DataMiningApp\obj\Debug\DataMiningApp.pdb
+C:\dataminingproject\DataMiningApp\bin\DataMiningApp.dll
+C:\dataminingproject\DataMiningApp\bin\DataMiningApp.pdb
+C:\dataminingproject\DataMiningApp\obj\Debug\ResolveAssemblyReference.cache
+C:\dataminingproject\DataMiningApp\obj\Debug\DataMiningApp.dll
+C:\dataminingproject\DataMiningApp\obj\Debug\DataMiningApp.pdb

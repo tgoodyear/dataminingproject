@@ -21,7 +21,7 @@ namespace DataMiningApp
         // Core variables
         int jobid = 1;
         int algorithmid = 1;
-        int stepid = 1;
+        int stepid;
 
         // Define database connection objects
         SqlConnection connection;
@@ -30,16 +30,21 @@ namespace DataMiningApp
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Specify connection string to database
+            
+            // Retrieve session id
 
+            stepid = (int)Session["stepid"];
+
+            // Specify connection string to database
+            
             // Microsoft Access
             //connection = new SqlConnection("Driver={Microsoft Access Driver (*.mdb)};DBQ=" + Server.MapPath("/App_Data/database.mdb") + ";UID=;PWD=;");
 
             // Microsoft SQL Server
-            connection = new SqlConnection("Data Source=RANJAN-PC\\SQLEXPRESS;Initial Catalog=DMP;UId=webapp;Password=password;");
+            connection = new SqlConnection("Data Source=localhost;Initial Catalog=DMP;UId=webapp;Password=password;");
 
             // Create SQL query to find out table size
-            string tablesize_query = "SELECT MAX(LAYOUT_X), MAX(LAYOUT_Y) FROM WEBAPP_LAYOUT";
+            string tablesize_query = "WEBAPP_TABLESIZE " + algorithmid + "," + stepid;
             
             // Establish connection
             reader = openconnection(tablesize_query, connection);
@@ -51,7 +56,7 @@ namespace DataMiningApp
             closeconnection(reader, connection);
 
             // Create SQL query to pull table layout information for this job and step
-            string layout_query = "SELECT LAYOUT_X, LAYOUT_Y, ROWSPAN, COLSPAN, CONTROL_TYPE, FILL_DATANAME, OUTPUT_DATANAME, CONST FROM WEBAPP_LAYOUT";
+            string layout_query = "WEBAPP_GETLAYOUT " + algorithmid + "," + stepid;
             command = new SqlCommand(layout_query, connection);
 
             // Open connection and execute query using SQL Reader
@@ -66,20 +71,22 @@ namespace DataMiningApp
             int layout_x, layout_y;
 
             // Read through layout table for this step and algorithm
-            while (reader.Read())
+            if (reader.HasRows)
             {
-                // Populate control array
-                layout_x = (int)reader[0];                                  // Table x index
-                layout_y = (int)reader[1];                                  // Table y index
-               
-                controlarray[layout_x, layout_y, 0] = (string)reader[4];    // Control type
-                controlarray[layout_x, layout_y, 1] = (string)reader[5];    // Fill data name
-                controlarray[layout_x, layout_y, 2] = (string)reader[6];    // Output data name
+                while (reader.Read())
+                {
+                    // Populate control array
+                    layout_x = (int)reader[0];                                  // Table x index
+                    layout_y = (int)reader[1];                                  // Table y index
 
-                spanarray[layout_x, layout_y, 0] = (int)reader[2];          // Rowspan
-                spanarray[layout_x, layout_y, 1] = (int)reader[3];          // Colspan
+                    controlarray[layout_x, layout_y, 0] = (string)reader[4];    // Control type
+                    controlarray[layout_x, layout_y, 1] = (string)reader[5];    // Fill data name
+                    controlarray[layout_x, layout_y, 2] = (string)reader[6];    // Output data name
+
+                    spanarray[layout_x, layout_y, 0] = (int)reader[2];          // Rowspan
+                    spanarray[layout_x, layout_y, 1] = (int)reader[3];          // Colspan
+                }
             }
-
             connection.Close();
 
             // Build interface
@@ -312,16 +319,18 @@ namespace DataMiningApp
         {
             // Fill data
 
-            // Get fill query from controlarray
-            string control_query = controlarray[col_traverse, row_traverse, 1];
+            // Get the data name from controlarray
+            string dataname = controlarray[col_traverse, row_traverse, 1];
+            // String to store SQL query
+            string control_query;
 
             // Check if fill query is specified
-            if (control_query != "NONE" && control_query != "")
+            if (dataname != "NONE" && dataname != "")
             {
                 // Add Job ID
-                if (control_query != "CONST")
+                if (dataname != "CONST")
                 {
-                    control_query = control_query + " " + jobid;
+                    control_query = "WEBAPP_READ " + " " + jobid + ",'" + dataname + "'";
                 }
                 else
                 {
@@ -337,10 +346,19 @@ namespace DataMiningApp
                     // Label control type
                     case "System.Web.UI.WebControls.Label":
                         {
+                            string datavalue;
+
                             // Load label text into string and set control value
                             reader.Read();
-                            string datavalue = (string)reader[0];
-                            
+
+                            if (reader.HasRows)
+                            {
+                                datavalue = reader["value"].ToString();
+                            }
+                            else
+                            {
+                                datavalue = null;
+                            }
                             // Create label control that points to fillcontrol object
                             Label labelcontrol = (Label)fillcontrol;
 
@@ -353,7 +371,7 @@ namespace DataMiningApp
                         {
                             // Load image into string and set control value
                             reader.Read();
-                            string imagepath = (string)reader[0];
+                            string imagepath = reader["value"].ToString();
 
                             // Create image control that points to fillcontrol object
                             Image imagecontrol = (Image)fillcontrol;
@@ -402,11 +420,18 @@ namespace DataMiningApp
                         {
                             FileUpload uploadcontrol = (FileUpload)fillcontrol;
                             string id = uploadcontrol.ID;
-                            
+                            string datavalue;
+
                             // Fill label
                             reader.Read();
-                            string datavalue = (string)reader[0];
-                            
+                            if (reader.HasRows)
+                            {
+                                datavalue = reader["value"].ToString();
+                            }
+                            else
+                            {
+                                datavalue = null;
+                            }
                             Label uploadlabel = (Label)Form.FindControl(id + "_label");
                             uploadlabel.Text = datavalue;
 
@@ -460,7 +485,7 @@ namespace DataMiningApp
             while (reader.Read())
             {  
                 // If new row in source data, add row to data table
-                if (rowid != (int)reader[0])
+                if (rowid != (int)reader["row_id"])
                 {
                     // Add row
                     currentrow = returndata.NewRow();
@@ -471,7 +496,7 @@ namespace DataMiningApp
                 }
 
                 // If still the first row, any new record will be an additional column
-                if ((int)reader[0] == 0)
+                if ((int)reader["row_id"] == 0)
                 {
                     // Create new column
                     currentcol = new DataColumn();
@@ -521,28 +546,42 @@ namespace DataMiningApp
                     FileUpload uploadcontrol = (FileUpload)outputcontrol;
                     string id = outputcontrol.ID;
 
+                    // Create GridView object
                     GridView datatable = (GridView)Form.FindControl(id + "_table");
 
-                    max_rows = datatable.Rows.Count; 
-                    max_cols = datatable.Rows[0].Cells.Count;
+                    // Find number of rows in GridView
+                    max_rows = datatable.Rows.Count;
 
-                    datatowrite = new string[max_rows + 1, max_cols, 1];
-
-                    for (int i = 1; i <= max_cols; i++)
+                    // If data exists, then fill datawrite array in row, col, val format with data
+                    if (max_rows > 0)
                     {
-                        datatowrite[0, i - 1, 0] = datatable.HeaderRow.Cells[i - 1].Text;
-                    }
+                        max_cols = datatable.Rows[0].Cells.Count;
 
-                    for(int j = 0; j < max_rows; j++)
-                    {
-                        for (int k = 0; k < max_cols; k++)
+                        datatowrite = new string[max_rows + 1, max_cols, 1];
+
+                        for (int i = 1; i <= max_cols; i++)
                         {
-                            datatowrite[j+1,k,0] = datatable.Rows[j].Cells[k].Text;
+                            datatowrite[0, i - 1, 0] = datatable.HeaderRow.Cells[i - 1].Text;
                         }
+
+                        for(int j = 0; j < max_rows; j++)
+                        {
+                            for (int k = 0; k < max_cols; k++)
+                            {
+                                datatowrite[j+1,k,0] = datatable.Rows[j].Cells[k].Text;
+                            }
+                        }
+                    }
+                    // If no data, fill with garbage
+                    else
+                    {
+                        datatowrite = new string[1, 1, 1];
+                        datatowrite[0, 0, 0] = null;
                     }
 
                     break;
                 }
+                // Non-writing control, just fill with garbage
                 default:
                 {
                     datatowrite = new string[1, 1, 1];
@@ -557,7 +596,7 @@ namespace DataMiningApp
 
         // INSERT DATA IN DATABASE -----------------------------------------------------------------------------------------------------
 
-        void datawrite(string[, ,] datatowrite, string control_query, string control_id)
+        void datawrite(string[, ,] datatowrite, string dataname, string control_id)
         {
             int row_counter; int col_counter;
             string execute_query;
@@ -565,7 +604,7 @@ namespace DataMiningApp
             int total_cols = datatowrite.GetLength(1);
 
             // Check if fill query is specified
-            if (control_query != "NONE" && control_query != "")
+            if (dataname != "NONE" && dataname != "")
             {
                 // Add critical keys for data write to ALGORITHM_DATASTORE
                 // JobID, StepID, Data_Name, Row_ID, Column_ID, Value
@@ -575,7 +614,7 @@ namespace DataMiningApp
                     for (col_counter = 0; col_counter < total_cols; col_counter++)
                     {
                         // Construct query
-                        execute_query = control_query + " " + jobid + ", " + stepid + ",'" + control_id + "'," + row_counter + "," + col_counter + ",'" + datatowrite[row_counter, col_counter, 0] + "'";
+                        execute_query = "WEBAPP_WRITE " + jobid + ",'" + dataname + "'," + row_counter + "," + col_counter + ",'" + datatowrite[row_counter, col_counter, 0] + "'";
                         
                         // Initialize reader and get data
                         reader = openconnection(execute_query, connection);
@@ -658,7 +697,7 @@ namespace DataMiningApp
                     if (testcontrol != null)
                     {
                         datatowrite = control_dataretrieve(testcontrol);
-                        if (datatowrite != null)
+                        if (datatowrite[0,0,0] != null)
                         {
                             datawrite(datatowrite, controlarray[col_traverse, row_traverse, 2], testcontrol.ID);
                         }                 
@@ -666,7 +705,15 @@ namespace DataMiningApp
                 }
             }
 
+            // Create instance of algorithm class (deleted on postback)
+            testalgorithm myalg = new testalgorithm();
+
+            // Call algorithm method with current step id
+            myalg.supermethod(algorithmid, stepid, jobid);
+
             // Move to next step
+            Session["stepid"] = (int)Session["stepid"] + 1;
+            Response.Redirect("Default.aspx", false);
         }
 
     }
