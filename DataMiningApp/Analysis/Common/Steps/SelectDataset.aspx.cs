@@ -50,7 +50,7 @@ namespace DataMiningApp
                 DataSetUpload.SaveAs(uploadPath);
                 String connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + System.IO.Path.GetTempPath().ToString() + ";Extended Properties='text;HDR=Yes;FMT=Delimited'";
                 connection = new OleDbConnection(connectionString);
-                OleDbCommand cmd = new OleDbCommand("SELECT * FROM " + DataSetUpload.FileName, connection);
+                OleDbCommand cmd = new OleDbCommand("SELECT * FROM " +  DataSetUpload.FileName, connection);
                 da = new OleDbDataAdapter(cmd);
                 connection.Open();
                 dt = new System.Data.DataTable();
@@ -78,6 +78,7 @@ namespace DataMiningApp
             if (DataSetName.Text.Trim().Length != 0 && DataSetUpload.HasFile)
             {
                 //move most to uploader
+                //handle spaces in file name
                 String uploadPath = System.IO.Path.Combine(System.IO.Path.GetTempPath().ToString(), DataSetUpload.FileName);
                 DataSetUpload.SaveAs(uploadPath);
                 String connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + System.IO.Path.GetTempPath().ToString() + ";Extended Properties='text;HDR=Yes;FMT=Delimited'";

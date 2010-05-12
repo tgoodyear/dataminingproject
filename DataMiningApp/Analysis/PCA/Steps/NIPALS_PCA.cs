@@ -43,7 +43,14 @@ namespace DataMiningApp.Analysis.PCA.Steps
             Matrix PCmatrix = new Matrix(X.ColumnCount, PCs, 0);
             Vector Weights = new Vector(PCs);
 
+            System.Diagnostics.Stopwatch watch = new Stopwatch();
+
+            //Run algorithm and time it
+            watch.Start();
             NIPALS(X, PCs, PCmatrix, Weights);
+            watch.Stop();
+            stream.set("algRunTime", watch.ElapsedMilliseconds);
+            
             /*
             response.Buffer = true;
             response.Write(PCmatrix.ToString() + "\n");

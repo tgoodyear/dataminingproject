@@ -4,7 +4,7 @@
     <style type="text/css">
         #File1
         {
-            width: 276px;
+            width: 460px;
         }
         </style>
     </asp:Content>
@@ -18,25 +18,26 @@
     </asp:DropDownList>
     <br />
     <br />
-    <br />
     <p>
         Upload a dataset...</p>
     <p>
         &nbsp;<asp:FileUpload ID="DataSetUpload" runat="server" 
-        style="text-align: left;" oninit="DataSetUpload_Init" Width="318px" />
+        style="text-align: left;" oninit="DataSetUpload_Init" Width="569px" size="60" 
+            CssClass="submitButton" />
     </p>
-    &nbsp;<asp:Button ID="Preview" runat="server" 
+    &nbsp;<br />
+        <asp:Button ID="Preview" runat="server" 
         onclick="Preview_Click" Text="Preview" />
-    <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <asp:Button ID="UploadAs" runat="server" Text="Upload As..." 
         onclick="UploadAs_Click" />
-    <asp:TextBox ID="DataSetName" runat="server" Width="449px"></asp:TextBox>
-    <br />
+    &nbsp;&nbsp;&nbsp;
+    <asp:TextBox ID="DataSetName" runat="server" Width="257px"></asp:TextBox>
+    &nbsp;<br />
     <hr style="text-align: right" />
     <br />
     <asp:Button ID="Next" runat="server" Height="27px" style="text-align: left" 
         Text="Next" onclick="Next_Click" />
-    <asp:Button ID="doPCA" runat="server" onclick="doPCA_Click" Text="Go PCA" />
     <hr />
     <br />
     Dataset preview<br />

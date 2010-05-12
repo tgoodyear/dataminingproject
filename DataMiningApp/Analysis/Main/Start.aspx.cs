@@ -24,12 +24,13 @@ namespace DataMiningApp
 
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            AlgDocLink.Text = ("Documentation on " + registry.GetAlgorithm(AlgDropDown.SelectedIndex).getDisplayName());
+            AlgDocLink.NavigateUrl = registry.GetAlgorithm(AlgDropDown.SelectedIndex).getDocumentationURL().ToString();
+  
         }
 
         protected void AlgDocLink_Init(object sender, EventArgs e)
         {
-            AlgDocLink.Text = "";
             AlgDocLink.Target = "_blank";
         }
 
