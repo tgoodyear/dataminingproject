@@ -5,6 +5,7 @@
 <asp:Content ID="Content2" ContentPlaceHolderID="MainContent" runat="server">
     <p>
         <br />
+        <asp:Label ID="AlgorithmTime" runat="server" Text="Label"></asp:Label>
     </p>
     <hr />
     <p>
@@ -14,6 +15,12 @@
             oninit="PCView_Init">
             <SelectedRowStyle BackColor="Silver" Font-Bold="True" ForeColor="White" />
         </asp:GridView>
+    </p>
+    <p>
+        <asp:Button ID="Project" runat="server" onclick="Project_Click" 
+            Text="Project on 2D Graph" />
+&nbsp;
+        <asp:Button ID="Finish" runat="server" Text="Finish" />
     </p>
     <hr />
     <p>
@@ -28,9 +35,9 @@
             </series>
             <chartareas>
                 <asp:ChartArea Name="ChartArea1">
-                    <AxisY Title="Variance">
+                    <AxisY Title="Variance Explained" TitleFont="Microsoft Sans Serif, 16.2pt">
                     </AxisY>
-                    <AxisX Title="Principal Component">
+                    <AxisX Title="Principal Component" TitleFont="Microsoft Sans Serif, 16.2pt">
                     </AxisX>
                 </asp:ChartArea>
             </chartareas>

@@ -58,7 +58,7 @@ namespace DataMiningApp.Analysis.PCA.Steps
 
         protected void PCs_Init(object sender, EventArgs e)
         {
-            PCs.Text = String.Format("%d",FeatureList.Items.Count);
+            PCs.Text = Math.Min(2,FeatureList.Items.Count).ToString();
         }
     }
 }

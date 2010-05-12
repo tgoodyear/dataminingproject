@@ -7,11 +7,11 @@ using System.Diagnostics;
 namespace DataMiningApp.Analysis.PCA
 
 {
-    public class NipalsPCA : Analysis 
+    public class svdPCA : Analysis 
     {
-        public NipalsPCA(String Name) : base(Name)
+        public svdPCA(String Name) : base(Name)
         {
-            setDocumentationURL(new Uri("http://en.wikipedia.org/wiki/Non-linear_iterative_partial_least_squares"));
+            setDocumentationURL(new Uri("http://en.wikipedia.org/wiki/Singular_value_decomposition"));
             steps.Add(new Common.Steps.SelectDataset());
             steps.Add(new Steps.PCAConfig());
             steps.Add(new Steps.NIPALS_PCA());
