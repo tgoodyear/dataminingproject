@@ -56,6 +56,7 @@
   <ItemGroup>
     <Content Include="Analysis\Common\Steps\SelectDataset.aspx" />
     <Content Include="Analysis\Main\Start.aspx" />
+    <Content Include="Analysis\PCA\Steps\PCA_2D_Projection.aspx" />
     <Content Include="Analysis\PCA\Steps\PCA_Config.aspx" />
     <Content Include="Analysis\PCA\Steps\PCA_Results.aspx" />
     <Content Include="Default.aspx" />
@@ -87,9 +88,18 @@
       <DependentUpon>Start.aspx</DependentUpon>
     </Compile>
     <Compile Include="Analysis\ParameterStream.cs" />
+    <Compile Include="Analysis\PCA\PCAsvd.cs" />
     <Compile Include="Analysis\PCA\PCA.cs" />
+    <Compile Include="Analysis\PCA\Steps\SVD_PCA.cs" />
     <Compile Include="Analysis\PCA\Steps\NIPALS_PCA.cs" />
     <Compile Include="Analysis\PCA\Steps\PCAResults.cs" />
+    <Compile Include="Analysis\PCA\Steps\PCA_2D_Projection.aspx.cs">
+      <DependentUpon>PCA_2D_Projection.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Analysis\PCA\Steps\PCA_2D_Projection.aspx.designer.cs">
+      <DependentUpon>PCA_2D_Projection.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Analysis\PCA\Steps\PCA_Config.aspx.cs">
       <DependentUpon>PCA_Config.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -125,13 +135,6 @@
     </Compile>
     <Compile Include="Site.Master.designer.cs">
       <DependentUpon>Site.Master</DependentUpon>
-    </Compile>
-    <Compile Include="Uploader\Uploader.aspx.cs">
-      <DependentUpon>Uploader.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Uploader\Uploader.aspx.designer.cs">
-      <DependentUpon>Uploader.aspx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
