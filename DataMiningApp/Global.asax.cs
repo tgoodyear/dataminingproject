@@ -20,12 +20,11 @@ namespace DataMiningApp
             appRegistry = new Registry.Registry(Application);
 
             //Add algorithms
-            Analysis.Analysis myPCA1 = new Analysis.PCA.PCA("Principal Component Analysis1");
+            Analysis.Analysis myPCA1 = new Analysis.PCA.NipalsPCA("Principal Component Analysis - NIPALs");
             appRegistry.registerAlgorithm(myPCA1);
-            myPCA1.setDocumentationURL(new Uri("http://en.wikipedia.org/wiki/Principal_component_analysis"));
-            Analysis.Analysis myPCA2 = new Analysis.PCA.PCA("Principal Component Analysis2");
+   
+            Analysis.Analysis myPCA2 = new Analysis.PCA.svdPCA("Principal Component Analysis - SVD");
             appRegistry.registerAlgorithm(myPCA2);
-            myPCA2.setDocumentationURL(new Uri("http://en.wikipedia.org/wiki/Non-linear_iterative_partial_least_squares"));
 
             //Add existing data sets 
         }
