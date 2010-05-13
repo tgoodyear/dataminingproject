@@ -20,6 +20,10 @@ namespace DataMiningApp
             appRegistry = new Registry.Registry(Application);
 
             //Add algorithms
+
+            Analysis.Analysis myPCA0 = new Analysis.PCA.PCADynamicNIPALS("Principal Component Analysis - NIPALs (Dynamic)");
+            appRegistry.registerAlgorithm(myPCA0);
+            
             Analysis.Analysis myPCA1 = new Analysis.PCA.NipalsPCA("Principal Component Analysis - NIPALs");
             appRegistry.registerAlgorithm(myPCA1);
    
@@ -50,7 +54,7 @@ namespace DataMiningApp
             Analysis.ParameterStream stream = new Analysis.ParameterStream(Session);
             sessionRegistry = new Registry.Registry(Session);
             Session.Add("stepid", stepid);
-            stepid = 1;
+            stepid = 0;
 
 
             //Add pre-existing user data sets
