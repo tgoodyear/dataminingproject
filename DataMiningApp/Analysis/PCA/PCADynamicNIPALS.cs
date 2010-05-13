@@ -11,11 +11,11 @@ namespace DataMiningApp.Analysis.PCA
         public PCADynamicNIPALS(String Name)
             : base(Name)
         {
-            setDocumentationURL(new Uri("http://en.wikipedia.org/wiki/Singular_value_decomposition"));
+            setDocumentationURL(new Uri("http://en.wikipedia.org/wiki/Non-linear_iterative_partial_least_squares"));
             steps.Add(new Common.Steps.SelectDatasetDynamic());
-            steps.Add(new Steps.PCAConfig());
+            steps.Add(new Steps.PCAConfigDynamic());
             steps.Add(new Steps.NIPALS_PCA());
-            steps.Add(new Steps.PCAResults());
+            steps.Add(new Steps.PCAResultsDynamic());
 
         }
 
