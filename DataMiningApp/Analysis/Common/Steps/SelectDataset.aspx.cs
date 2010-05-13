@@ -95,7 +95,6 @@ namespace DataMiningApp
                 Session.Add("table", dt);
                 Session.Add("connection", connection);
                 Session.Add("adapter", da);
-                
 
                 Registry.Registry registry = Registry.Registry.getRegistry(Session);
                 registry.registerDataset(ds);

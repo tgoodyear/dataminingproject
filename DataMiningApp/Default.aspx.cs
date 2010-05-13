@@ -8,6 +8,7 @@ using System.Web.UI.HtmlControls;
 using System.Data;
 using System.Data.SqlClient;
 using System.Web.UI.DataVisualization.Charting;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace DataMiningApp
 {
@@ -42,7 +43,7 @@ namespace DataMiningApp
             //connection = new SqlConnection("Driver={Microsoft Access Driver (*.mdb)};DBQ=" + Server.MapPath("/App_Data/database.mdb") + ";UID=;PWD=;");
 
             // Microsoft SQL Server
-            connection = new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=DMP;UId=webapp;Password=123;");
+            connection = new SqlConnection("Data Source=localhost;Initial Catalog=DMP;UId=webapp;Password=123;");
 
             // Create SQL query to find out table size
             string tablesize_query = "WEBAPP_TABLESIZE " + algorithmid + "," + stepid;
@@ -185,6 +186,32 @@ namespace DataMiningApp
                         returncontrol = newlabel;
                         break;
                     }
+                case "MULTISELECT":
+                    {
+                        // Create new control
+                        ListBox newlistbox = new ListBox();
+                        Label newlabel = new Label();
+
+                        // Set listbox control properties
+                        newlistbox.Font.Name = "Arial"; newlistbox.Font.Size = 11;
+                        newlistbox.ID = "control_" + col_traverse + "_" + row_traverse;
+                        newlistbox.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+                        newlistbox.SelectionMode = ListSelectionMode.Multiple;
+
+                        // Set label control properties
+                        newlabel.Font.Name = "Arial"; newlabel.Font.Size = 11;
+                        newlabel.ID = "control_" + col_traverse + "_" + row_traverse + "_label";
+
+                        // Add control
+                        cell.Controls.Add(newlabel);
+                        cell.Controls.Add(new LiteralControl("<br><br>"));
+                        cell.Controls.Add(newlistbox);
+
+                        // Return label for text fill
+                        //returncontrol = newtextbox;
+                        returncontrol = newlistbox;
+                        break;
+                    }
                 case "IMAGE":
                     {
                         // Create new control
@@ -230,6 +257,122 @@ namespace DataMiningApp
                     }
                 case "SCATTERPLOT":
                     {
+                        Chart Projection = new Chart();
+                        Series newseries = new Series();
+                        newseries.ChartType = SeriesChartType.Point;
+                        Projection.ChartAreas.Add(new ChartArea());
+                        Projection.ChartAreas[0].AxisY.Title = "Second Principal Component";
+                        Projection.ChartAreas[0].AxisX.Title = "First Principal Component";
+
+                        Projection.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+                        Projection.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+
+                        DataMiningApp.Analysis.ParameterStream stream;
+                        Registry.Registry registry;
+
+                        stream = DataMiningApp.Analysis.ParameterStream.getStream(Session);
+                        registry = Registry.Registry.getRegistry(Session);
+
+                        Matrix PCmatrix = (Matrix)stream.get("PCmatrix");
+                        String[] features = (String[])stream.get("selectedFeatures");
+
+                        System.Data.DataSet ds = (System.Data.DataSet)registry.GetDataset((string)stream.get("dataSetName"));
+
+                        //retrieve dataset table (assume one for now)
+                        System.Data.DataTable dt = ds.Tables[0];
+
+                        //raw data
+                        double[,] rawData = new double[dt.Rows.Count, features.Count()];
+                        for (int i = 0; i < dt.Rows.Count; i++)
+                        {
+                            for (int j = 0; j < features.Count(); j++)
+                                rawData[i, j] = (double)dt.Rows[i].ItemArray.ElementAt(dt.Columns[features[j]].Ordinal);
+                        }
+
+                        //Create matrix to hold data for PCA
+                        Matrix X = new Matrix(rawData);
+
+                        //Remove mean
+                        Vector columnVector;
+                        for (int i = 0; i < X.ColumnCount; i++)
+                        {
+                            columnVector = X.GetColumnVector(i);
+                            X.SetColumnVector(columnVector.Subtract(columnVector.Average()), i);
+                        }
+
+                        //get first two PCs
+                        Matrix xy = new Matrix(PCmatrix.RowCount, 2);
+                        xy.SetColumnVector(PCmatrix.GetColumnVector(0), 0);
+                        xy.SetColumnVector(PCmatrix.GetColumnVector(1), 1);
+
+                        //project
+                        Matrix projected = X.Multiply(xy);
+
+                        DataPoint point;
+                        Projection.Series.Clear();
+                        Projection.Legends.Clear();
+
+
+                        //if a label column is selected
+                        String LabelColumnName = "Species";
+
+                        if (!LabelColumnName.Equals(""))
+                        {
+
+                            //get labels
+                            int labelColumnIndex = dt.Columns[LabelColumnName].Ordinal;
+                            List<String> labels = new List<String>();
+                            String item;
+
+                            for (int i = 0; i < dt.Rows.Count; i++)
+                            {
+                                item = (String)dt.Rows[i].ItemArray.ElementAt(labelColumnIndex);
+                                if (!labels.Contains(item))
+                                    labels.Add(item);
+                            }
+                            Legend mylegend = Projection.Legends.Add(LabelColumnName);
+                            mylegend.TableStyle = LegendTableStyle.Wide;
+
+                            Projection.Legends[0].Docking = Docking.Bottom;
+                            System.Drawing.Font font = Projection.Legends[LabelColumnName].Font = new System.Drawing.Font(Projection.Legends[LabelColumnName].Font.Name, 14);
+
+                            //Configure series
+                            foreach (String label in labels)
+                            {
+                                Projection.Series.Add(label);
+                                Projection.Series[label].LegendText = label;
+                                Projection.Series[label].IsXValueIndexed = false;
+                                Projection.Series[label].ChartType = SeriesChartType.Point;
+                                Projection.Series[label].MarkerSize = 8;
+                            }
+
+                            //Add points
+                            for (int i = 0; i < projected.RowCount; i++)
+                            {
+                                point = new DataPoint(projected[i, 0], projected[i, 1]);
+                                String label = dt.Rows[i].ItemArray[labelColumnIndex].ToString();
+                                Projection.Series[label].Points.Add(point);
+                            }
+
+                        }
+                        else
+                        {
+                            //Single plot graph
+                            Projection.Series.Add("series1");
+                            Projection.Series[0].IsXValueIndexed = false;
+                            Projection.Series[0].ChartType = SeriesChartType.Point;
+                            Projection.Series[0].MarkerSize = 8;
+
+                            for (int i = 0; i < projected.RowCount; i++)
+                            {
+                                point = new DataPoint(projected[i, 0], projected[i, 1]);
+                                Projection.Series[0].Points.Add(point);
+                            }
+                        }
+                        cell.Controls.Add(Projection);
+                        returncontrol = Projection;
+
+                        /*
                         // Create new control
                         Chart chartcontrol = new Chart();
 
@@ -252,7 +395,36 @@ namespace DataMiningApp
                         // Add control
                         cell.Controls.Add(chartcontrol);
                         returncontrol = chartcontrol;
+                        */
+                        break;
+                    }
+                case "LINEPLOT":
+                    {                           
+                        DataMiningApp.Analysis.ParameterStream stream = DataMiningApp.Analysis.ParameterStream.getStream(Session);
+                        Vector Weights = (Vector)stream.get("Weights");
+
+                        Chart VariancePlot = new Chart();
+
+                        VariancePlot.Width = Unit.Pixel(Convert.ToInt16(cell.Width.Substring(0, cell.Width.Length - 2)) * cell.ColSpan - 2 * (layouttable.Border + layouttable.CellPadding));
+                        VariancePlot.Height = Unit.Pixel(Convert.ToInt16(row.Height.Substring(0, row.Height.Length - 2)) * cell.RowSpan - 2 * (layouttable.Border + layouttable.CellPadding));
                         
+                        VariancePlot.Palette = ChartColorPalette.EarthTones;
+                        Series dataseries = new Series();
+                        dataseries.ChartType = SeriesChartType.Line;
+                        dataseries.MarkerColor = System.Drawing.Color.Black;
+                        dataseries.MarkerBorderWidth = 3;
+                        dataseries.MarkerBorderColor = System.Drawing.Color.Black;
+                        VariancePlot.Series.Add(dataseries);
+                        VariancePlot.ChartAreas.Add(new ChartArea());
+                        VariancePlot.ChartAreas[0].AxisY.Title = "Variance Explained";
+                        VariancePlot.ChartAreas[0].AxisX.Title = "Principal Component";
+
+                        for (int i = 0; i < Weights.Length; i++)
+                            VariancePlot.Series[0].Points.InsertY(i, Weights[i]);
+
+                        cell.Controls.Add(VariancePlot);
+                        returncontrol = VariancePlot;
+
                         break;
                     }
                 case "UPLOAD":
@@ -385,25 +557,78 @@ namespace DataMiningApp
                     case "System.Web.UI.WebControls.Panel":
                         {
                             // Convert reader data to dataset
-                            DataTable retrieveddataset;
-                            retrieveddataset = db_dataretrieve(reader);
+                            //DataTable retrieveddataset;
+                            //retrieveddataset = db_dataretrieve(reader);
 
                             // Create GridView control that points to fillcontrol object
                             Panel tablecontainer = (Panel)fillcontrol;
                             GridView gridviewcontrol = (GridView)tablecontainer.Controls[0];
 
-                            gridviewcontrol.DataSource = retrieveddataset;
+                            //gridviewcontrol.DataSource = retrieveddataset;
+                            //gridviewcontrol.DataBind();
+
+                            // SESSION MODIFICATIONS //
+
+                            DataMiningApp.Analysis.ParameterStream stream = DataMiningApp.Analysis.ParameterStream.getStream(Session);
+
+                            Matrix PCmatrix = (Matrix)stream.get("PCmatrix");
+                            Vector Weights = (Vector)stream.get("Weights");
+                            String[] features = (String[])stream.get("selectedFeatures");
+
+                            //for (int i = 0; i < Weights.Length; i++)
+                            //    VariancePlot.Series[0].Points.InsertY(i, Weights[i]);
+
+                            DataSet ds = new DataSet("temp");
+                            DataTable dt = new DataTable();
+                            // Declare your Columns
+
+                            //PC Weight
+                            DataColumn dc = new DataColumn("Weight", Type.GetType("System.Double"));
+                            dt.Columns.Add(dc);
+
+                            //PC Coefficients
+                            foreach (String feature in features)
+                            {
+                                dc = new DataColumn(feature, Type.GetType("System.Double"));
+                                dt.Columns.Add(dc);
+                            }
+
+                            // Add the DataTable to your DataSet
+                            ds.Tables.Add(dt);
+
+                            DataRow dr;
+                            for (int i = 0; i < PCmatrix.ColumnCount; i++)
+                            {
+                                dr = ds.Tables[0].NewRow();
+                                dt.Rows.Add(dr);
+                                dt.Rows[i][0] = Math.Round(Weights[i], 3);
+                                for (int j = 0; j < PCmatrix.RowCount; j++)
+                                    dt.Rows[i][j + 1] = Math.Round(PCmatrix[j, i],3);
+
+                            }
+                            /*
+                            dr = ds.Tables[0].NewRow();
+                            dt.Rows.Add(dr);
+                            double[] dataArray = new double[Weights.Length];
+                            dataArray[0] = 1232.21321;
+                            dr[0] = 321.12321;
+
+                            //dt.Rows[0].ItemArray[1] = 333.32;
+                            */
+                            gridviewcontrol.DataSource = dt;
                             gridviewcontrol.DataBind();
+
+                            //-------------------------------//
 
                             break;      
                         }
                     case "System.Web.UI.DataVisualization.Charting.Chart":
                         {
+
                             // Convert reader data to dataset
+                            /*
                             DataTable retrieveddataset;
                             retrieveddataset = db_dataretrieve(reader);
-
-                            Chart chartcontrol = (Chart)fillcontrol;
 
                             // Set data plotted by returned column names
                             chartcontrol.Series["Series"].XValueMember = retrieveddataset.Columns[0].ColumnName;
@@ -414,7 +639,8 @@ namespace DataMiningApp
 
                             chartcontrol.DataSource = retrieveddataset;
                             chartcontrol.DataBind();
-                            
+                            */
+
                             break;
                         }
                     case "System.Web.UI.WebControls.FileUpload":
@@ -435,6 +661,39 @@ namespace DataMiningApp
                             }
                             Label uploadlabel = (Label)Form.FindControl(id + "_label");
                             uploadlabel.Text = datavalue;
+
+                            break;
+                        }
+                    case "System.Web.UI.WebControls.ListBox":
+                        {
+                            ListBox listboxcontrol = (ListBox)fillcontrol;
+
+                            string id = listboxcontrol.ID;
+                            string datavalue;
+
+                            // Fill label
+                            reader.Read();
+                            if (reader.HasRows)
+                            {
+                                datavalue = reader["value"].ToString();
+                            }
+                            else
+                            {
+                                datavalue = null;
+                            }
+                            Label uploadlabel = (Label)Form.FindControl(id + "_label");
+                            uploadlabel.Text = datavalue;
+
+                            String dataSetParameterName = "dataSetName";
+                            DataMiningApp.Analysis.ParameterStream stream = DataMiningApp.Analysis.ParameterStream.getStream(Session);
+                            if (stream.contains(dataSetParameterName))
+                            {
+                                Registry.Registry appRegistry = Registry.Registry.getRegistry(Session);
+                                DataSet ds = appRegistry.GetDataset((String)stream.get(dataSetParameterName));
+
+                                foreach (DataColumn dc in ds.Tables[0].Columns)
+                                    listboxcontrol.Items.Add(dc.ColumnName);
+                            }
 
                             break;
                         }
@@ -540,6 +799,12 @@ namespace DataMiningApp
                     // Get value from text box
                     datatowrite[0,0,0] = datapull.Text;
 
+                    // SESSION MODIFICATIONS //
+                    DataMiningApp.Analysis.ParameterStream stream = DataMiningApp.Analysis.ParameterStream.getStream(Session);
+                    stream.set("numberOfPCs", int.Parse(datapull.Text));
+
+                    //-----------------------//
+
                     break;
                 }
                 case "System.Web.UI.WebControls.FileUpload":
@@ -572,6 +837,7 @@ namespace DataMiningApp
                                 datatowrite[j+1,k,0] = datatable.Rows[j].Cells[k].Text;
                             }
                         }
+
                     }
                     // If no data, fill with garbage
                     else
@@ -579,6 +845,24 @@ namespace DataMiningApp
                         datatowrite = new string[1, 1, 1];
                         datatowrite[0, 0, 0] = null;
                     }
+
+                    break;
+                }
+                case "System.Web.UI.WebControls.ListBox":
+                {
+                    ListBox listboxcontrol = (ListBox)outputcontrol;
+
+                    DataMiningApp.Analysis.Analysis analysis = (DataMiningApp.Analysis.Analysis)Session["analysis"];
+                    DataMiningApp.Analysis.ParameterStream stream = DataMiningApp.Analysis.ParameterStream.getStream(Session);
+                    String[] features = new String[listboxcontrol.GetSelectedIndices().Count()];
+                    for (int i = 0; i < listboxcontrol.GetSelectedIndices().Count(); i++)
+                    {
+                        features[i] = listboxcontrol.Items[listboxcontrol.GetSelectedIndices()[i]].Text;
+                    }
+                    stream.set("selectedFeatures", features);
+
+                    datatowrite = new string[1, 1, 1];
+                    datatowrite[0, 0, 0] = null;
 
                     break;
                 }
@@ -673,6 +957,19 @@ namespace DataMiningApp
                 GridView filedata = (GridView)Form.FindControl(id + "_table");
                 filedata.DataSource = csv_data;
                 filedata.DataBind();
+
+                // SESSION MODIFICATION //
+
+                DataSet session_datanew = new DataSet();
+                session_datanew.Tables.Add(csv_data);
+                session_datanew.DataSetName = "PCADATA";
+
+                Registry.Registry registry = Registry.Registry.getRegistry(Session);
+                registry.registerDataset(session_datanew);
+                Analysis.ParameterStream stream = Analysis.ParameterStream.getStream(Session);
+                stream.set("dataSetName", "PCADATA");
+
+                //----------------------//
             }
         }
         
@@ -700,22 +997,26 @@ namespace DataMiningApp
                         datatowrite = control_dataretrieve(testcontrol);
                         if (datatowrite[0,0,0] != null)
                         {
-                            datawrite(datatowrite, controlarray[col_traverse, row_traverse, 2], testcontrol.ID);
+                            //datawrite(datatowrite, controlarray[col_traverse, row_traverse, 2], testcontrol.ID);
                         }                 
                     }
                 }
             }
 
+            // ALGORITHM STEP RUN -------------------------------------
+
+
             Analysis.Analysis analysis = (Analysis.Analysis) Session["analysis"];
             analysis.next(Response, Session);
     
             /*
+
             // Create instance of algorithm class (deleted on postback)
             testalgorithm myalg = new testalgorithm();
 
             // Call algorithm method with current step id
             myalg.supermethod(algorithmid, stepid, jobid);
-
+            
             // Move to next step
             Session["stepid"] = (int)Session["stepid"] + 1;
             Response.Redirect("Default.aspx", false);

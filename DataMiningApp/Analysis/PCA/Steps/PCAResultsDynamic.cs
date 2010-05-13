@@ -9,7 +9,9 @@ namespace DataMiningApp.Analysis.PCA.Steps
     {
         public void start(Analysis parent, HttpResponse response, System.Web.SessionState.HttpSessionState session)
         {
-            response.Redirect("~/Analysis/PCA/Steps/PCA_Results.aspx");
+            session["stepid"] = 3;
+            response.Redirect("~/Default.aspx");
+            //response.Redirect("~/Analysis/PCA/Steps/PCA_Results.aspx");
         }
     }
 }
