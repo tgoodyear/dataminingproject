@@ -33,6 +33,7 @@ namespace DataMiningApp
             
             // Retrieve session id
 
+
             stepid = (int)Session["stepid"];
 
             // Specify connection string to database
@@ -41,7 +42,7 @@ namespace DataMiningApp
             //connection = new SqlConnection("Driver={Microsoft Access Driver (*.mdb)};DBQ=" + Server.MapPath("/App_Data/database.mdb") + ";UID=;PWD=;");
 
             // Microsoft SQL Server
-            connection = new SqlConnection("Data Source=localhost;Initial Catalog=DMP;UId=webapp;Password=password;");
+            connection = new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=DMP;UId=webapp;Password=123;");
 
             // Create SQL query to find out table size
             string tablesize_query = "WEBAPP_TABLESIZE " + algorithmid + "," + stepid;
@@ -705,6 +706,10 @@ namespace DataMiningApp
                 }
             }
 
+            Analysis.Analysis analysis = (Analysis.Analysis) Session["analysis"];
+            analysis.next(Response, Session);
+    
+            /*
             // Create instance of algorithm class (deleted on postback)
             testalgorithm myalg = new testalgorithm();
 
@@ -714,6 +719,8 @@ namespace DataMiningApp
             // Move to next step
             Session["stepid"] = (int)Session["stepid"] + 1;
             Response.Redirect("Default.aspx", false);
+             * 
+             */
         }
 
     }
