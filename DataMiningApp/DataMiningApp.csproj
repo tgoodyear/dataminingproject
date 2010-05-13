@@ -62,9 +62,12 @@
     <Content Include="Default.aspx" />
     <Content Include="Global.asax" />
     <Content Include="Styles\Site.css" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -72,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analysis\Analysis.cs" />
+    <Compile Include="Analysis\Common\Steps\SelectDatasetDynamic.cs" />
     <Compile Include="Analysis\Common\Steps\SelectDataset.aspx.cs">
       <DependentUpon>SelectDataset.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -88,8 +92,11 @@
       <DependentUpon>Start.aspx</DependentUpon>
     </Compile>
     <Compile Include="Analysis\ParameterStream.cs" />
+    <Compile Include="Analysis\PCA\PCADynamicNIPALS.cs" />
     <Compile Include="Analysis\PCA\PCAsvd.cs" />
     <Compile Include="Analysis\PCA\PCA.cs" />
+    <Compile Include="Analysis\PCA\Steps\PCAResultsDynamic.cs" />
+    <Compile Include="Analysis\PCA\Steps\PCAConfigDynamic.cs" />
     <Compile Include="Analysis\PCA\Steps\SVD_PCA.cs" />
     <Compile Include="Analysis\PCA\Steps\NIPALS_PCA.cs" />
     <Compile Include="Analysis\PCA\Steps\PCAResults.cs" />
