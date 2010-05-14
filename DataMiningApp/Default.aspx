@@ -51,8 +51,7 @@
     <asp:Panel ID="mainpanel" runat="server" Height="535px" 
         Width="920px"
         Style="vertical-align:middle;border-color:White;" ScrollBars="None" 
-            BorderColor="White" BackColor="White" BorderStyle="None" BorderWidth="0px" 
-            ForeColor="White">
+            BorderStyle="None" BorderWidth="0px" >
         <!-- Seed for layout table -->   
         <table runat="server" id="layouttable" border="1" bordercolor="black" borderstyle="solid" cellpadding="10" style="font-family:arial;font-size:12px;border-collapse:collapse;">
         </table>                    
