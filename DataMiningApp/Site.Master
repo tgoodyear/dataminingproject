@@ -7,6 +7,20 @@
     <link href="~/Styles/Site.css" rel="stylesheet" type="text/css" />
     <asp:ContentPlaceHolder ID="HeadContent" runat="server">
     </asp:ContentPlaceHolder>
+    <style type="text/css">
+        .style1
+        {
+            font-family: "Segoe UI Semibold";
+            font-size: xx-large;
+            color: #666666;
+        }
+        .style2
+        {
+            font-family: "Segoe UI Semibold";
+            font-size: xx-large;
+            color: #CC0000;
+        }
+    </style>
 </head>
 <body>
     <form runat="server">
@@ -14,20 +28,10 @@
         <div class="header">
             <div class="title">
                 <h1>
-                    aNET-leetix
-                </h1>
+                    <span class="style1">A</span><span class="style2">NET</span><span 
+                        class="style1">LYTICS</span></h1>
             </div>
-            <div class="loginDisplay">
-                <asp:LoginView ID="HeadLoginView" runat="server" EnableViewState="true">
-                    <AnonymousTemplate>
-                        [ <a href="~/Account/Login.aspx" ID="HeadLoginStatus" runat="server">Log In</a> ]
-                    </AnonymousTemplate>
-                    <LoggedInTemplate>
-                        Welcome <span class="bold"><asp:LoginName ID="HeadLoginName" runat="server" /></span>!
-                        [ <asp:LoginStatus ID="HeadLoginStatus" runat="server" LogoutAction="Redirect" LogoutText="Log Out" LogoutPageUrl="~/"/> ]
-                    </LoggedInTemplate>
-                </asp:LoginView>
-            </div>
+         
             <div class="clear hideSkiplink">
                 <asp:Menu ID="NavigationMenu" runat="server" CssClass="menu" EnableViewState="true" IncludeStyleBlock="false" Orientation="Horizontal">
                     <Items>

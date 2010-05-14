@@ -19,3 +19,10 @@ C:\Documents and Settings\aasenjo\My Documents\Visual Studio 2010\Projects\datam
 C:\Documents and Settings\aasenjo\My Documents\Visual Studio 2010\Projects\datamining\bin\de\MathNet.Iridium.resources.dll
 C:\Documents and Settings\aasenjo\My Documents\Visual Studio 2010\Projects\datamining\bin\es\MathNet.Iridium.resources.dll
 C:\Documents and Settings\aasenjo\My Documents\Visual Studio 2010\Projects\datamining\bin\fr\MathNet.Iridium.resources.dll
+C:\dataminingproject\DataMiningApp\bin\DataMiningApp.dll
+C:\dataminingproject\DataMiningApp\bin\DataMiningApp.pdb
+C:\dataminingproject\DataMiningApp\bin\MathNet.Iridium.pdb
+C:\dataminingproject\DataMiningApp\bin\MathNet.Iridium.xml
+C:\dataminingproject\DataMiningApp\obj\Debug\ResolveAssemblyReference.cache
+C:\dataminingproject\DataMiningApp\obj\Debug\DataMiningApp.dll
+C:\dataminingproject\DataMiningApp\obj\Debug\DataMiningApp.pdb
