@@ -8,38 +8,51 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" >
 <head id="Head1" runat="server">
-    <title>Datamaster</title>
+    <title></title>
+    <link href="~/Styles/Site.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
+        .style1
+        {
+            font-family: "Segoe UI Semibold";
+            font-size: xx-large;
+            color: #666666;
+        }
         .style2
         {
-            text-align: center;
-        }
-        .style3
-        {
+            font-family: "Segoe UI Semibold";
             font-size: xx-large;
-            font-family: Arial;
-        }
-        .style4
-        {
-            height: 13px;
+            color: #CC0000;
         }
     </style>
 </head>
 <body>
-    <div class="style2">
-    <p>
-        <span class="style3"><strong>DataMaster<br />
-        </strong></span>
-    </p>
-    </div>
-    <form id="main_form" runat="server" method=post>
+<form id="main_form" runat="server" method=post>
+<div class="page">
+        <div class="header">
+            <div class="title">
+                <h1>
+                    <span class="style1">A</span><span class="style2">NET</span><span 
+                        class="style1">LYTICS</span></h1>
+            </div>
+            
+            <div class="clear hideSkiplink">
+                <asp:Menu ID="NavigationMenu" runat="server" CssClass="menu" EnableViewState="true" IncludeStyleBlock="false" Orientation="Horizontal">
+                    <Items>
+                        <asp:MenuItem NavigateUrl="~/Default.aspx" Text="Home"/>
+                        <asp:MenuItem NavigateUrl="~/About.aspx" Text="About"/>
+                    </Items>
+                </asp:Menu>
+            </div>
+        </div>
+    
     <table align="center">
     <tr>
     <td>
-    <asp:Panel ID="mainpanel" runat="server" BackColor="#F0F0F0" Height="535px" 
-        Width="920px" BorderWidth="2px" BorderColor="Silver" BorderStyle="Solid" 
-        Style="vertical-align:middle;" ScrollBars="Auto">
-            
+    <asp:Panel ID="mainpanel" runat="server" Height="535px" 
+        Width="920px"
+        Style="vertical-align:middle;border-color:White;" ScrollBars="None" 
+            BorderColor="White" BackColor="White" BorderStyle="None" BorderWidth="0px" 
+            ForeColor="White">
         <!-- Seed for layout table -->   
         <table runat="server" id="layouttable" border="1" bordercolor="black" borderstyle="solid" cellpadding="10" style="font-family:arial;font-size:12px;border-collapse:collapse;">
         </table>                    
@@ -54,6 +67,7 @@
         </td>
     </tr>
     </table>
+</div>
     </form>
 </body>
 </html>

@@ -13,6 +13,15 @@ namespace DataMiningApp {
     public partial class _Default {
         
         /// <summary>
+        /// Head1 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlHead Head1;
+        
+        /// <summary>
         /// main_form control.
         /// </summary>
         /// <remarks>
@@ -20,6 +29,15 @@ namespace DataMiningApp {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlForm main_form;
+        
+        /// <summary>
+        /// NavigationMenu control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Menu NavigationMenu;
         
         /// <summary>
         /// mainpanel control.
