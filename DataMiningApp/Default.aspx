@@ -49,7 +49,7 @@
     <tr>
     <td>
     <asp:Panel ID="mainpanel" runat="server" Height="535px" 
-        Width="920px"
+        Width="920px" ForeColor="Black"
         Style="vertical-align:middle;border-color:White;" ScrollBars="None" 
             BorderStyle="None" BorderWidth="0px" >
         <!-- Seed for layout table -->   
