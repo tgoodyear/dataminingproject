@@ -456,6 +456,7 @@ namespace DataMiningApp
                         uploadbutton.Width = 100;
                         uploadbutton.Click += new System.EventHandler(uploadbutton_Click);
                         uploadlabel.Font.Name = "Arial"; uploadlabel.Font.Size = 11;
+                        uploadlabel.ForeColor = System.Drawing.Color.Black;
                         uploadcontrol.Width = Unit.Pixel((int)(tablepanel.Width.Value - 17) - (int)uploadbutton.Width.Value);
                         uploadtable.Width = Unit.Pixel((int)(tablepanel.Width.Value - 17));
                         uploadtable.Height = Unit.Pixel((int)(tablepanel.Height.Value - 17));
